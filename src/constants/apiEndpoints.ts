@@ -6,14 +6,14 @@ export const GET_BASKET: string = `${BASE_URL}/gateway/cart/ShoppingCartItems/Ge
 export const REMOVE_FROM_BASKET: string = `${BASE_URL}/gateway/cart/ShoppingCartItems/DeleteShoppingCartItem`;
 
 // Catalog - Brands
-export const GET_ALL_BRANDS: string = `${CATALOG_BASE_URL}/api/catalog/Brands/getAll`;
+export const GET_ALLFILTER_BRANDS: string = `${CATALOG_BASE_URL}/api/catalog/Brands/getAllFilter`;
 export const GET_BRAND_BY_ID: string = `${CATALOG_BASE_URL}/api/catalog/Brands/getById`;
 export const CREATE_BRAND: string = `${CATALOG_BASE_URL}/api/catalog/Brands/create`;
 export const UPDATE_BRAND: string = `${CATALOG_BASE_URL}/api/catalog/Brands/update`;
 export const DELETE_BRAND: string = `${CATALOG_BASE_URL}/api/catalog/Brands/delete`;
 
 // Catalog - Categories
-export const GET_ALL_CATEGORIES: string = `${CATALOG_BASE_URL}/api/catalog/Categories/getAll`;
+export const GET_ALL_CATEGORIES: string = `${CATALOG_BASE_URL}/api/catalog/Categories/getAllFilter`;
 export const GET_CATEGORY_BY_ID: string = `${CATALOG_BASE_URL}/api/catalog/Categories/getById`;
 export const CREATE_CATEGORY: string = `${CATALOG_BASE_URL}/api/catalog/Categories/create`;
 export const UPDATE_CATEGORY: string = `${CATALOG_BASE_URL}/api/catalog/Categories/update`;

@@ -62,9 +62,9 @@ export default function AdminSidebar() {
 
       <VStack align="stretch" gap={2}>
         {MENU_ITEMS.map((item) => {
-          const isMainActive = item.path === '/admin/products' 
-            ? pathname?.startsWith('/admin/products') 
-            : pathname === item.path || pathname?.startsWith(item.path + '/')
+          const isMainActive = item.path === '/admin/dashboard' 
+            ? pathname === item.path 
+            : pathname?.startsWith(item.path);
 
           return (
             <Box key={item.name}>

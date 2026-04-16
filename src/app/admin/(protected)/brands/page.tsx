@@ -1,68 +1,54 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Box, Flex, Heading, Input, Table, IconButton, Text, Button, Menu } from "@chakra-ui/react"
-import { FiSettings, FiPlus, FiMoreVertical, FiTrash2 } from "react-icons/fi"
+import { Box, Flex, Heading, Input, Table, IconButton, Text, Badge, Button, Menu, Spinner } from "@chakra-ui/react"
+import { FiPlus, FiMoreVertical, FiTrash2, FiSettings } from "react-icons/fi"
 import Link from "next/link"
-import nextApiClient from "@/util/nextApiClient"
+import axios from "axios"
+
 interface Brand {
-  id: string;
+  id: string; // Guid
   name: string;
   description: string;
   slug: string;
+  isActive: boolean;
 }
 
 export default function AdminBrandsList() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState({ name: "", description: "", slug: "" })
+  
+  // BaseFilterDto states
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState("")
 
   const fetchBrands = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      const res = await nextApiClient.get("/brands")
-      // BFF mock nesnesi dönüyorsa dönen datanın içinde data olabilir, yoksa gerçeğe bağlı doğrudan dönüyor da olabilir.
-      const data = res.data.data || res.data
-      setBrands(data)
+      // Proxying via our Next.js API Route Server we just created
+      const res = await axios.get("/api/brands/getAll", {
+        params: {
+          Page: page,
+          PageSize: 10,
+          Search: search || undefined
+        }
+      })
+      // Assuming res.data.data contains the list based on standard architecture, adjust if necessary
+      setBrands(res.data.data?.items || res.data.data || res.data)
     } catch (error) {
-      console.error("Markalar yüklenirken hata oluştu:", error)
+      console.error("Markaları çekerken hata:", error)
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchBrands()
-  }, [])
+    const delayDebounceFn = setTimeout(() => {
+      fetchBrands()
+    }, 500) // Debounce search
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Bu markayı silmek istediğinize emin misiniz?")) return;
-    
-    try {
-      const res = await nextApiClient.delete(`/brands/${id}`)
-      if (res.status === 200 || res.status === 204) {
-        alert("Marka başarıyla silindi.")
-        fetchBrands()
-      } else {
-        alert("Silme işlemi başarısız oldu.")
-      }
-    } catch (error) {
-      console.error("Silme hatası:", error)
-    }
-  }
-
-  // Filter logic
-  const filteredBrands = brands?.filter(p => {
-    return (
-      (p.name || "").toLowerCase().includes(filters.name.toLowerCase()) &&
-      (p.description || "").toLowerCase().includes(filters.description.toLowerCase()) &&
-      (p.slug || "").toLowerCase().includes(filters.slug.toLowerCase())
-    )
-  }) || []
-
-  const handleFilterChange = (field: keyof typeof filters, value: string) => {
-    setFilters(prev => ({ ...prev, [field]: value }))
-  }
+    return () => clearTimeout(delayDebounceFn)
+  }, [page, search])
 
   return (
     <Box bg="white" _dark={{ bg: "gray.800" }} p={6} borderRadius="xl" shadow="sm">
@@ -76,29 +62,33 @@ export default function AdminBrandsList() {
         </Link>
       </Flex>
 
-      <Box overflowX="auto">
+      <Flex mb={4}>
+        <Input 
+          placeholder="Marka Ara (İsim veya Slug ile)" 
+          maxW="300px" 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </Flex>
+      
+      <Box overflowX="auto" position="relative" minH="200px">
+        {loading && (
+           <Flex position="absolute" top={0} left={0} w="full" h="full" bg="whiteAlpha.700" _dark={{ bg: "blackAlpha.600" }} zIndex={10} justify="center" align="center">
+             <Spinner size="lg" color="purple.500" />
+           </Flex>
+        )}
         <Table.Root variant="line">
           <Table.Header>
             <Table.Row>
               <Table.ColumnHeader w="60px" textAlign="center">İşlem</Table.ColumnHeader>
               <Table.ColumnHeader>Marka Adı</Table.ColumnHeader>
-              <Table.ColumnHeader>Açıklama</Table.ColumnHeader>
               <Table.ColumnHeader>Slug</Table.ColumnHeader>
-            </Table.Row>
-            {/* Filter Row */}
-            <Table.Row bg="gray.50" _dark={{ bg: "gray.900" }}>
-              <Table.Cell></Table.Cell>
-              <Table.Cell py={2}><Input size="sm" placeholder="Ara..." value={filters.name} onChange={(e) => handleFilterChange('name', e.target.value)} /></Table.Cell>
-              <Table.Cell py={2}><Input size="sm" placeholder="Ara..." value={filters.description} onChange={(e) => handleFilterChange('description', e.target.value)} /></Table.Cell>
-              <Table.Cell py={2}><Input size="sm" placeholder="Ara..." value={filters.slug} onChange={(e) => handleFilterChange('slug', e.target.value)} /></Table.Cell>
+              <Table.ColumnHeader>Açıklama</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="center">Durum</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {loading ? (
-              <Table.Row>
-                <Table.Cell colSpan={4} textAlign="center" py={10}>Yükleniyor...</Table.Cell>
-              </Table.Row>
-            ) : filteredBrands.map(p => (
+            {brands?.length > 0 ? brands.map(p => (
               <Table.Row key={p.id}>
                 <Table.Cell textAlign="center" position="relative" overflow="visible">
                   <Menu.Root positioning={{ placement: "bottom-start" }}>
@@ -122,31 +112,13 @@ export default function AdminBrandsList() {
                         p={1}
                         zIndex={20}
                       >
-                        <Menu.Item
-                          value="view"
-                          asChild
-                          px={3}
-                          py={2}
-                          cursor="pointer"
-                          _hover={{ bg: "gray.50" }}
-                          _dark={{ _hover: { bg: "whiteAlpha.200" } }}
-                          borderRadius="sm"
-                        >
+                        <Menu.Item value="view" asChild px={3} py={2} cursor="pointer" _hover={{ bg: "gray.50" }} _dark={{ _hover: { bg: "whiteAlpha.200" } }} borderRadius="sm">
                           <Link href={`/admin/brands/${p.id}`} style={{ display: 'flex', alignItems: 'center', width: '100%', textDecoration: 'none' }}>
                             <FiSettings style={{ marginRight: '8px' }} color="gray" />
                             <Text whiteSpace="nowrap" fontSize="sm" fontWeight="medium" color="gray.700" _dark={{ color: "gray.200" }}>Detay Görüntüle</Text>
                           </Link>
                         </Menu.Item>
-                        <Menu.Item
-                          value="delete"
-                          px={3}
-                          py={2}
-                          cursor="pointer"
-                          _hover={{ bg: "red.50" }}
-                          _dark={{ _hover: { bg: "whiteAlpha.200" } }}
-                          borderRadius="sm"
-                          onClick={() => handleDelete(p.id)}
-                        >
+                        <Menu.Item value="delete" px={3} py={2} cursor="pointer" _hover={{ bg: "red.50" }} _dark={{ _hover: { bg: "whiteAlpha.200" } }} borderRadius="sm">
                           <Flex align="center" w="full">
                             <FiTrash2 style={{ marginRight: '8px' }} color="red" />
                             <Text whiteSpace="nowrap" fontSize="sm" fontWeight="medium" color="red.500">Sil</Text>
@@ -157,18 +129,36 @@ export default function AdminBrandsList() {
                   </Menu.Root>
                 </Table.Cell>
                 <Table.Cell fontWeight="medium">{p.name}</Table.Cell>
-                <Table.Cell>{p.description}</Table.Cell>
-                <Table.Cell>{p.slug}</Table.Cell>
+                <Table.Cell color="gray.500">{p.slug}</Table.Cell>
+                <Table.Cell>{p.description?.substring(0, 50)}{p.description?.length > 50 ? '...' : ''}</Table.Cell>
+                <Table.Cell textAlign="center">
+                  <Badge colorPalette={p.isActive === false ? "red" : "green"}>
+                    {p.isActive === false ? "Pasif" : "Aktif"}
+                  </Badge>
+                </Table.Cell>
               </Table.Row>
-            ))}
-            {!loading && filteredBrands.length === 0 && (
-              <Table.Row>
-                <Table.Cell colSpan={4} textAlign="center" py={10} color="gray.500">Kayıt bulunamadı.</Table.Cell>
-              </Table.Row>
+            )) : (
+              !loading && (
+                <Table.Row>
+                  <Table.Cell colSpan={5} textAlign="center" py={10} color="gray.500">
+                    Kayıt bulunamadı.
+                  </Table.Cell>
+                </Table.Row>
+              )
             )}
           </Table.Body>
         </Table.Root>
       </Box>
+
+      {/* Basic Pagination Controls */}
+      <Flex justify="space-between" align="center" mt={4}>
+        <Text fontSize="sm" color="gray.500">Sayfa {page}</Text>
+        <Flex gap={2}>
+          <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Önceki</Button>
+          <Button size="sm" variant="outline" onClick={() => setPage(p => p + 1)}>Sonraki</Button>
+        </Flex>
+      </Flex>
+
     </Box>
   )
 }
