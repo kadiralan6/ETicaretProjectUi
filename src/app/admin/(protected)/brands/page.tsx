@@ -5,19 +5,29 @@ import { Box, Flex, Heading, Input, Table, IconButton, Text, Badge, Button, Menu
 import { FiPlus, FiMoreVertical, FiTrash2, FiSettings } from "react-icons/fi"
 import Link from "next/link"
 import axios from "axios"
+import toast from "react-hot-toast"
 
 interface Brand {
-  id: string; // Guid
+  id: number;
   name: string;
   description: string;
   slug: string;
-  isActive: boolean;
+  isActive: boolean | null;
+  isDeleted: boolean;
+  createdAt: string;
+  createdBy: number | null;
+  modifiedAt: string | null;
+  modifiedBy: number | null;
+  deletedAt: string | null;
+  deletedBy: number | null;
 }
 
 export default function AdminBrandsList() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [loading, setLoading] = useState(true)
-  
+  const [pageCount, setPageCount] = useState(1)
+  const [rowCount, setRowCount] = useState(0)
+
   // BaseFilterDto states
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
@@ -33,10 +43,14 @@ export default function AdminBrandsList() {
           Search: search || undefined
         }
       })
-      // Assuming res.data.data contains the list based on standard architecture, adjust if necessary
-      setBrands(res.data.data?.items || res.data.data || res.data)
-    } catch (error) {
+      // API: { isSuccess, data: { results: [...], pageCount, rowCount, ... } }
+      const paged = res.data?.data
+      setBrands(paged?.results ?? [])
+      setPageCount(paged?.pageCount ?? 1)
+      setRowCount(paged?.rowCount ?? 0)
+    } catch (error: any) {
       console.error("Markaları çekerken hata:", error)
+      toast.error(error.response?.data?.message || "Markalar yüklenirken bir sorun oluştu.")
     } finally {
       setLoading(false)
     }
@@ -152,10 +166,10 @@ export default function AdminBrandsList() {
 
       {/* Basic Pagination Controls */}
       <Flex justify="space-between" align="center" mt={4}>
-        <Text fontSize="sm" color="gray.500">Sayfa {page}</Text>
+        <Text fontSize="sm" color="gray.500">Sayfa {page} / {pageCount} &bull; Toplam {rowCount} kayıt</Text>
         <Flex gap={2}>
           <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Önceki</Button>
-          <Button size="sm" variant="outline" onClick={() => setPage(p => p + 1)}>Sonraki</Button>
+          <Button size="sm" variant="outline" disabled={page >= pageCount} onClick={() => setPage(p => p + 1)}>Sonraki</Button>
         </Flex>
       </Flex>
 

@@ -5,6 +5,7 @@ import { useState } from "react"
 import { FiSave } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import axios from "axios"
+import toast from "react-hot-toast"
 
 // Yardımcı Fonksiyon: Slug oluşturucu (Türkçe karakterleri dönüştürür)
 const generateSlug = (text: string) => {
@@ -58,11 +59,10 @@ export default function AdminBrandCreate() {
     setLoading(true)
     try {
       await axios.post("/api/brands/create", formData)
-      alert("Marka başarıyla kaydedildi!")
+      toast.success("Marka başarıyla kaydedildi!")
       router.push("/admin/brands")
     } catch (error: any) {
-      console.error("Marka kaydedilirken hata:", error)
-      alert(error.response?.data?.error || "Kayıt işlemi başarısız oldu.")
+      toast.error(error.response?.data?.message || "Kayıt işlemi başarısız oldu.")
     } finally {
       setLoading(false)
     }

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import httpClient from "@/util/httpClient";
-import { GET_ALL_BRANDS, CREATE_BRAND } from "@/constants/apiEndpoints";
+import { GET_ALLFILTER_BRANDS, CREATE_BRAND } from "@/constants/apiEndpoints";
 
 /**
  * GET /api/brands — Tüm markaları listele
  */
 export async function GET() {
   try {
-    const response = await httpClient.get(GET_ALL_BRANDS);
+    const response = await httpClient.get(GET_ALLFILTER_BRANDS);
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error("[BFF] GET /api/brands error:", error.message);

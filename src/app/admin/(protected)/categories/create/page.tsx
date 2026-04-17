@@ -8,6 +8,7 @@ import { useState, useEffect } from "react"
 import { FiSave, FiImage } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import axios from "axios"
+import toast from "react-hot-toast"
 
 interface Category {
   id: number;
@@ -32,10 +33,10 @@ export default function AdminCategoryCreate() {
   useEffect(() => {
     axios.get("/api/categories/getAllFilter", { params: { Page: 1, PageSize: 100 } })
       .then(res => {
-        const data = res.data.data?.items || res.data.data || res.data
-        setParentCategories(Array.isArray(data) ? data : [])
+        const paged = res.data?.data
+        setParentCategories(paged?.results ?? [])
       })
-      .catch(err => console.error("Üst kategoriler yüklenemedi:", err))
+      .catch(err => toast.error(err.response?.data?.message || "Üst kategoriler yüklenemedi"))
   }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -53,11 +54,10 @@ export default function AdminCategoryCreate() {
         displayOrder: Number(formData.displayOrder),
       }
       await axios.post("/api/categories/create", payload)
-      alert("Kategori başarıyla kaydedildi!")
+      toast.success("Kategori başarıyla kaydedildi!")
       router.push("/admin/categories")
     } catch (error: any) {
-      console.error("Kategori kaydedilirken hata:", error)
-      alert(error.response?.data?.error || "Kayıt işlemi başarısız oldu.")
+      toast.error(error.response?.data?.message || "Kayıt işlemi başarısız oldu.")
     } finally {
       setLoading(false)
     }

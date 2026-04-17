@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes"
 import { SessionProvider } from "next-auth/react"
 import { QueryProvider } from "@/providers/QueryProvider"
 import { ReduxProvider } from "@/providers/ReduxProvider"
+import { Toaster } from "react-hot-toast"
 
 /**
  * Provider hiyerarşisi:
@@ -24,6 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <ChakraProvider value={defaultSystem}>
             <ThemeProvider attribute="class" disableTransitionOnChange>
               {children}
+              <Toaster position="top-right" />
             </ThemeProvider>
           </ChakraProvider>
         </ReduxProvider>

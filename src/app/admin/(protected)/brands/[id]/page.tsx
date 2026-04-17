@@ -5,6 +5,7 @@ import { useState, useEffect, use } from "react"
 import { FiSave } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import { GET_BRAND_BY_ID, UPDATE_BRAND } from "@/constants/apiEndpoints"
+import toast from "react-hot-toast"
 
 const generateSlug = (text: string) => {
   return text
@@ -61,12 +62,11 @@ export default function AdminBrandUpdate({ params }: { params: Promise<{ id: str
             slug: data.slug || ""
           })
         } else {
-          alert("Marka bilgileri alınamadı.")
+          toast.error("Marka bilgileri alınamadı.")
           router.push("/admin/brands")
         }
       } catch (error) {
-        console.error("Marka yükleme hatası:", error)
-        alert("Sunucuya ulaşılamadı.")
+        toast.error("Sunucuya ulaşılamadı.")
       } finally {
         setInitialLoading(false)
       }
@@ -91,14 +91,14 @@ export default function AdminBrandUpdate({ params }: { params: Promise<{ id: str
       });
       
       if (res.ok) {
-        alert("Marka başarıyla güncellendi!")
+        toast.success("Marka başarıyla güncellendi!")
         router.push("/admin/brands")
       } else {
-        alert("Marka güncellenirken bir hata oluştu.")
+        const errorData = await res.json().catch(() => null)
+        toast.error(errorData?.message || "Marka güncellenirken bir hata oluştu.")
       }
     } catch (error) {
-      console.error("Marka güncelleme hatası:", error)
-      alert("Sunucuya ulaşılamadı veya bir hata oluştu.")
+      toast.error("Sunucuya ulaşılamadı veya bir hata oluştu.")
     } finally {
       setLoading(false)
     }

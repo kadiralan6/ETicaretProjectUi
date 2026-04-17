@@ -5,6 +5,7 @@ import { useState, useEffect, use } from "react"
 import { FiSave } from "react-icons/fi"
 import { useRouter } from "next/navigation"
 import { GET_CATEGORY_BY_ID, UPDATE_CATEGORY } from "@/constants/apiEndpoints"
+import toast from "react-hot-toast"
 
 const generateSlug = (text: string) => {
   return text
@@ -61,12 +62,11 @@ export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: 
             slug: data.slug || ""
           })
         } else {
-          alert("Kategori bilgileri alınamadı.")
+          toast.error("Kategori bilgileri alınamadı.")
           router.push("/admin/categories")
         }
       } catch (error) {
-        console.error("Kategori yükleme hatası:", error)
-        alert("Sunucuya ulaşılamadı.")
+        toast.error("Sunucuya ulaşılamadı.")
       } finally {
         setInitialLoading(false)
       }
@@ -91,14 +91,14 @@ export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: 
       });
       
       if (res.ok) {
-        alert("Kategori başarıyla güncellendi!")
+        toast.success("Kategori başarıyla güncellendi!")
         router.push("/admin/categories")
       } else {
-        alert("Kategori güncellenirken bir hata oluştu.")
+        const errorData = await res.json().catch(() => null)
+        toast.error(errorData?.message || "Kategori güncellenirken bir hata oluştu.")
       }
     } catch (error) {
-      console.error("Kategori güncelleme hatası:", error)
-      alert("Sunucuya ulaşılamadı veya bir hata oluştu.")
+      toast.error("Sunucuya ulaşılamadı veya bir hata oluştu.")
     } finally {
       setLoading(false)
     }

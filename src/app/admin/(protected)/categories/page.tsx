@@ -8,6 +8,7 @@ import {
 import { FiPlus, FiMoreVertical, FiTrash2, FiSettings } from "react-icons/fi"
 import Link from "next/link"
 import axios from "axios"
+import toast from "react-hot-toast"
 
 interface Category {
   id: number;
@@ -24,6 +25,8 @@ export default function AdminCategoriesList() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
+  const [pageCount, setPageCount] = useState(1)
+  const [rowCount, setRowCount] = useState(0)
   const [search, setSearch] = useState("")
   const [isActive, setIsActive] = useState<string>("")
 
@@ -40,9 +43,13 @@ export default function AdminCategoriesList() {
           OrderType: 0,
         }
       })
-      setCategories(res.data.data?.items || res.data.data || res.data)
-    } catch (error) {
+      const paged = res.data?.data
+      setCategories(paged?.results ?? [])
+      setPageCount(paged?.pageCount ?? 1)
+      setRowCount(paged?.rowCount ?? 0)
+    } catch (error: any) {
       console.error("Kategorileri çekerken hata:", error)
+      toast.error(error.response?.data?.message || "Kategorileri çekerken hata oluştu.")
     } finally {
       setLoading(false)
     }
@@ -162,10 +169,10 @@ export default function AdminCategoriesList() {
       </Box>
 
       <Flex justify="space-between" align="center" mt={4}>
-        <Text fontSize="sm" color="gray.500">Sayfa {page}</Text>
+        <Text fontSize="sm" color="gray.500">Sayfa {page} / {pageCount} &bull; Toplam {rowCount} kayıt</Text>
         <Flex gap={2}>
           <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Önceki</Button>
-          <Button size="sm" variant="outline" onClick={() => setPage(p => p + 1)}>Sonraki</Button>
+          <Button size="sm" variant="outline" disabled={page >= pageCount} onClick={() => setPage(p => p + 1)}>Sonraki</Button>
         </Flex>
       </Flex>
     </Box>

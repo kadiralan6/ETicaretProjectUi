@@ -1,13 +1,19 @@
 /**
- * Marka domain modeli.
+ * Marka domain modeli (API: GetBrandDto / PagedResult).
  */
 export interface Brand {
-  id: string;
+  id: number;
   name: string;
+  slug: string;
   description?: string;
-  logoUrl?: string;
-  isActive: boolean;
+  isActive: boolean | null;
+  isDeleted: boolean;
   createdAt: string;
+  createdBy: number | null;
+  modifiedAt: string | null;
+  modifiedBy: number | null;
+  deletedAt: string | null;
+  deletedBy: number | null;
 }
 
 /** Marka oluşturma isteği */
