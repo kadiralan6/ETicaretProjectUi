@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import httpClient from "@/util/httpClient";
-import { GET_CATEGORY_BY_ID, UPDATE_CATEGORY, DELETE_CATEGORY } from "@/constants/apiEndpoints";
+import { GET_ADMIN_DETAIL_CATEGORY, UPDATE_CATEGORY, DELETE_CATEGORY } from "@/constants/apiEndpoints";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -12,7 +12,7 @@ interface RouteParams {
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
   try {
-    const response = await httpClient.get(`${GET_CATEGORY_BY_ID}/${id}`);
+    const response = await httpClient.get(`${GET_ADMIN_DETAIL_CATEGORY}/${id}`);
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error(`[BFF] GET /api/categories/${id} error:`, error.message);

@@ -15,16 +15,20 @@ export const DELETE_BRAND: string = `${CATALOG_BASE_URL}/api/catalog/Brands/dele
 // Catalog - Categories
 export const GET_ALL_CATEGORIES: string = `${CATALOG_BASE_URL}/api/catalog/Categories/getAllFilter`;
 export const GET_CATEGORY_BY_ID: string = `${CATALOG_BASE_URL}/api/catalog/Categories/getById`;
+export const GET_ADMIN_DETAIL_CATEGORY: string = `${CATALOG_BASE_URL}/api/catalog/Categories/getAdminDetail`;
 export const CREATE_CATEGORY: string = `${CATALOG_BASE_URL}/api/catalog/Categories/create`;
 export const UPDATE_CATEGORY: string = `${CATALOG_BASE_URL}/api/catalog/Categories/update`;
 export const DELETE_CATEGORY: string = `${CATALOG_BASE_URL}/api/catalog/Categories/delete`;
 
 // Catalog - Products
+export const GET_ALLFILTER_PRODUCTS: string = `${CATALOG_BASE_URL}/api/catalog/Products/getAllFilter`;
 export const GET_ALL_PRODUCTS: string = `${CATALOG_BASE_URL}/api/catalog/Products/getAll`;
 export const GET_PRODUCT_BY_ID: string = `${CATALOG_BASE_URL}/api/catalog/Products/getById`;
 export const CREATE_PRODUCT: string = `${CATALOG_BASE_URL}/api/catalog/Products/create`;
 export const UPDATE_PRODUCT: string = `${CATALOG_BASE_URL}/api/catalog/Products/update`;
 export const DELETE_PRODUCT: string = `${CATALOG_BASE_URL}/api/catalog/Products/delete`;
+export const CREATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/create`;
+export const UPDATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/update`;
 
 // Orders
 export const GET_ALL_ORDERS: string = `${BASE_URL}/api/orders/getAll`;

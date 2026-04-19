@@ -1,10 +1,10 @@
 "use client"
 
-import { Box, Button, Flex, Grid, GridItem, Heading, Input, VStack, Text, Textarea, Spinner } from "@chakra-ui/react"
+import { Box, Button, Flex, Grid, GridItem, Heading, Input, VStack, Text, Textarea, Spinner, Badge, Table } from "@chakra-ui/react"
 import { useState, useEffect, use } from "react"
+import Link from "next/link"
 import { FiSave } from "react-icons/fi"
 import { useRouter } from "next/navigation"
-import { GET_CATEGORY_BY_ID, UPDATE_CATEGORY } from "@/constants/apiEndpoints"
 import toast from "react-hot-toast"
 
 const generateSlug = (text: string) => {
@@ -16,6 +16,18 @@ const generateSlug = (text: string) => {
     .replace(/\-\-+/g, '-')         
     .replace(/^-+/, '')             
     .replace(/-+$/, '');            
+}
+
+interface SubCategory {
+  id: number;
+  name: string | null;
+  description: string | null;
+  slug: string | null;
+  imageUrl: string | null;
+  parentCategoryId: number | null;
+  parentCategoryName: string | null;
+  displayOrder: number;
+  isActive: boolean;
 }
 
 export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: string }> }) {
@@ -31,7 +43,10 @@ export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: 
     id: "",
     name: "",
     description: "",
-    slug: ""
+    slug: "",
+    displayOrder: 0,
+    isActive: true,
+    subCategories: [] as SubCategory[]
   })
 
   // Auto-generate slug when name changes manually (optional)
@@ -52,14 +67,18 @@ export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: 
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await fetch(GET_CATEGORY_BY_ID(id))
+        const res = await fetch(`/api/categories/${id}`)
         if (res.ok) {
-          const data = await res.json()
+          const json = await res.json()
+          const cat = json.data || json // In case API doesn't wrap loosely
           setFormData({
-            id: data.id || id,
-            name: data.name || "",
-            description: data.description || "",
-            slug: data.slug || ""
+            id: cat.id || id,
+            name: cat.name || "",
+            description: cat.description || "",
+            slug: cat.slug || "",
+            displayOrder: cat.displayOrder || 0,
+            isActive: cat.isActive !== undefined ? cat.isActive : true,
+            subCategories: cat.subCategories || []
           })
         } else {
           toast.error("Kategori bilgileri alınamadı.")
@@ -82,12 +101,18 @@ export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: 
     setLoading(true)
     
     try {
-      const res = await fetch(UPDATE_CATEGORY, {
+      const payload = {
+        ...formData,
+        id: Number(id),
+        displayOrder: Number(formData.displayOrder)
+      }
+
+      const res = await fetch(`/api/categories/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       
       if (res.ok) {
@@ -137,8 +162,36 @@ export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: 
               value={formData.slug}
               onChange={handleChange}
               placeholder="Örn: elektronik" 
-              required 
+              readOnly 
+              bg="gray.50"
+              _dark={{ bg: "gray.700" }}
+              cursor="not-allowed"
             />
+            <Text fontSize="xs" color="gray.500">Slug alanı otomatik oluşturulur ve değiştirilemez.</Text>
+          </VStack>
+
+          <VStack align="stretch" gap={2}>
+            <Text fontWeight="medium" fontSize="sm">Sıralama (DisplayOrder)</Text>
+            <Input 
+              type="number"
+              name="displayOrder"
+              value={formData.displayOrder}
+              onChange={handleChange}
+              placeholder="0" 
+              min={0}
+            />
+          </VStack>
+
+          <VStack align="stretch" gap={2}>
+            <Text fontWeight="medium" fontSize="sm">Durum</Text>
+            <select
+              style={{ height: '40px', padding: '0 12px', borderRadius: '6px', border: '1px solid #E2E8F0', background: 'transparent', width: '100%' }}
+              value={formData.isActive.toString()}
+              onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === "true" }))}
+            >
+              <option value="true">Aktif</option>
+              <option value="false">Pasif</option>
+            </select>
           </VStack>
 
           <GridItem colSpan={{ base: 1, md: 2 }}>
@@ -163,6 +216,45 @@ export default function AdminCategoryUpdate({ params }: { params: Promise<{ id: 
           </Button>
         </Flex>
       </form>
+
+      {/* Alt Kategoriler Alanı */}
+      {formData.subCategories && formData.subCategories.length > 0 && (
+        <Box mt={12} pt={6} borderTop="1px solid" borderColor="gray.100" _dark={{ borderColor: "gray.700" }}>
+          <Heading size="md" mb={4}>Alt Kategorileri</Heading>
+          <Box overflowX="auto" border="1px solid" borderColor="gray.200" _dark={{ borderColor: "gray.700" }} borderRadius="lg">
+            <Table.Root variant="line">
+              <Table.Header bg="gray.50" _dark={{ bg: "whiteAlpha.50" }}>
+                <Table.Row>
+                  <Table.ColumnHeader>Kategori Adı</Table.ColumnHeader>
+                  <Table.ColumnHeader>Slug</Table.ColumnHeader>
+                  <Table.ColumnHeader textAlign="center">Durum</Table.ColumnHeader>
+                  <Table.ColumnHeader textAlign="right">İşlem</Table.ColumnHeader>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {formData.subCategories.map((sub) => (
+                  <Table.Row key={sub.id}>
+                    <Table.Cell fontWeight="medium">{sub.name}</Table.Cell>
+                    <Table.Cell color="gray.500">{sub.slug}</Table.Cell>
+                    <Table.Cell textAlign="center">
+                      <Badge colorPalette={sub.isActive ? "green" : "red"}>
+                        {sub.isActive ? "Aktif" : "Pasif"}
+                      </Badge>
+                    </Table.Cell>
+                    <Table.Cell textAlign="right">
+                      <Link href={`/admin/categories/${sub.id}`}>
+                        <Button size="xs" variant="outline" colorPalette="purple">
+                          Düzenle
+                        </Button>
+                      </Link>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Root>
+          </Box>
+        </Box>
+      )}
     </Box>
   )
 }

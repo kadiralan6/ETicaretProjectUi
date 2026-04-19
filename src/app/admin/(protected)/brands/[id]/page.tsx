@@ -4,7 +4,6 @@ import { Box, Button, Flex, Grid, GridItem, Heading, Input, VStack, Text, Textar
 import { useState, useEffect, use } from "react"
 import { FiSave } from "react-icons/fi"
 import { useRouter } from "next/navigation"
-import { GET_BRAND_BY_ID, UPDATE_BRAND } from "@/constants/apiEndpoints"
 import toast from "react-hot-toast"
 
 const generateSlug = (text: string) => {
@@ -31,7 +30,8 @@ export default function AdminBrandUpdate({ params }: { params: Promise<{ id: str
     id: "",
     name: "",
     description: "",
-    slug: ""
+    slug: "",
+    isActive: true
   })
 
   // Auto-generate slug when name changes manually (optional)
@@ -52,14 +52,16 @@ export default function AdminBrandUpdate({ params }: { params: Promise<{ id: str
   useEffect(() => {
     const fetchBrand = async () => {
       try {
-        const res = await fetch(GET_BRAND_BY_ID(id))
+        const res = await fetch(`/api/brands/${id}`)
         if (res.ok) {
-          const data = await res.json()
+          const json = await res.json()
+          const brand = json.data || json // In case API doesn't wrap loosely
           setFormData({
-            id: data.id || id,
-            name: data.name || "",
-            description: data.description || "",
-            slug: data.slug || ""
+            id: brand.id || id,
+            name: brand.name || "",
+            description: brand.description || "",
+            slug: brand.slug || "",
+            isActive: brand.isActive !== undefined ? brand.isActive : true
           })
         } else {
           toast.error("Marka bilgileri alınamadı.")
@@ -82,12 +84,17 @@ export default function AdminBrandUpdate({ params }: { params: Promise<{ id: str
     setLoading(true)
     
     try {
-      const res = await fetch(UPDATE_BRAND, {
+      const payload = {
+        ...formData,
+        id: Number(id)
+      }
+
+      const res = await fetch(`/api/brands/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       
       if (res.ok) {
@@ -137,8 +144,24 @@ export default function AdminBrandUpdate({ params }: { params: Promise<{ id: str
               value={formData.slug}
               onChange={handleChange}
               placeholder="Örn: apple" 
-              required 
+              readOnly 
+              bg="gray.50"
+              _dark={{ bg: "gray.700" }}
+              cursor="not-allowed"
             />
+            <Text fontSize="xs" color="gray.500">Slug alanı otomatik oluşturulur ve değiştirilemez.</Text>
+          </VStack>
+
+          <VStack align="stretch" gap={2}>
+            <Text fontWeight="medium" fontSize="sm">Durum</Text>
+            <select
+              style={{ height: '40px', padding: '0 12px', borderRadius: '6px', border: '1px solid #E2E8F0', background: 'transparent', width: '100%' }}
+              value={formData.isActive.toString()}
+              onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === "true" }))}
+            >
+              <option value="true">Aktif</option>
+              <option value="false">Pasif</option>
+            </select>
           </VStack>
 
           <GridItem colSpan={{ base: 1, md: 2 }}>

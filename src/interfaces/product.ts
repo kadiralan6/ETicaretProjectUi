@@ -32,6 +32,31 @@ export interface ProductListItem {
   stock: number;
 }
 
+/** Admin - Backend'den gelen ürün detay modeli */
+export interface AdminProductDetail {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  slug: string;
+  price: number;
+  stockQuantity: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  categoryId: number;
+  categoryName: string;
+  brandId: number;
+  brandName: string;
+  imageUrls: string[];
+  isDeleted: boolean;
+  createdAt: string;
+  createdBy: number | null;
+  modifiedAt: string | null;
+  modifiedBy: number | null;
+  deletedAt: string | null;
+  deletedBy: number | null;
+}
+
 /** Ürün oluşturma isteği */
 export interface CreateProductRequest {
   name: string;

@@ -4,6 +4,9 @@ import { z } from "zod";
  * Ürün oluşturma/güncelleme form validasyon şeması.
  */
 export const productSchema = z.object({
+  code: z
+    .string()
+    .min(1, "Ürün kodu gereklidir"),
   name: z
     .string()
     .min(1, "Ürün adı gereklidir")
@@ -11,15 +14,17 @@ export const productSchema = z.object({
     .max(200, "Ürün adı en fazla 200 karakter olabilir"),
   description: z
     .string()
-    .min(1, "Açıklama gereklidir")
-    .min(10, "Açıklama en az 10 karakter olmalıdır"),
+    .optional(),
   price: z
-    .number({ error: "Fiyat sayı olmalıdır" })
+    .number({ message: "Fiyat sayı olmalıdır" })
     .positive("Fiyat 0'dan büyük olmalıdır"),
-  stock: z
-    .number({ error: "Stok sayı olmalıdır" })
+  stockQuantity: z
+    .number({ message: "Stok sayı olmalıdır" })
     .int("Stok tam sayı olmalıdır")
     .min(0, "Stok negatif olamaz"),
+  isFeatured: z
+    .boolean()
+    .optional(),
   categoryId: z
     .string()
     .min(1, "Kategori seçilmelidir"),
