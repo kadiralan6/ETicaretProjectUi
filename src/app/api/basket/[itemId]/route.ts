@@ -6,21 +6,13 @@ interface RouteParams {
   params: Promise<{ itemId: string }>;
 }
 
-/**
- * DELETE /api/basket/:itemId — Sepetten ürün sil
- */
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   const { itemId } = await params;
   try {
     const response = await httpClient.delete(`${REMOVE_FROM_BASKET}/${itemId}`);
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error(`[BFF] DELETE /api/basket/${itemId} error:`, error.message);
-
-    // Mock fallback
-    return NextResponse.json({
-      success: true,
-      message: "Ürün sepetten silindi.",
-    });
+    const errorData = error.response?.data || {};
+    return NextResponse.json(errorData, { status: errorData.StatusCode || 500 });
   }
 }

@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { Box, Container, Flex, Heading, HStack, Input, Link as ChakraLink, Button, Badge } from "@chakra-ui/react"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useState, Suspense } from "react"
+import { Box, Container, Flex, Heading, HStack, Input, Button, Badge } from "@chakra-ui/react";
+import Link from "next/link";
+import { useRouter, useSearchParams, useParams, usePathname } from "next/navigation";
+import { useState, Suspense } from "react";
 
-function SearchInput() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [query, setQuery] = useState(searchParams.get("search") || "")
+function SearchInput({ lang }: { lang: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("search") || "");
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (query.trim()) {
-      router.push(`/products?search=${encodeURIComponent(query)}`)
+      router.push(`/${lang}/products?search=${encodeURIComponent(query)}`);
     } else {
-      router.push("/products")
+      router.push(`/${lang}/products`);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSearch} style={{ width: "100%", maxWidth: "500px" }}>
-      <Flex gap={2}>
+      <Flex gap="8px">
         <Input
           placeholder="Ürün ara..."
           value={query}
@@ -33,38 +33,69 @@ function SearchInput() {
         <Button type="submit" colorPalette="blue">Ara</Button>
       </Flex>
     </form>
-  )
+  );
 }
 
 export function Navbar() {
+  const params = useParams();
+  const pathname = usePathname();
+  const lang = (params?.lang as string) || "tr";
+
+  // Aktif sayfanın dil prefix'ini değiştirerek switcher linki oluştur
+  const switchTo = (newLang: string) =>
+    pathname.replace(/^\/(tr|en)/, `/${newLang}`);
+
   return (
-    <Box bg="teal.600" py={4} color="white" position="sticky" top={0} zIndex={100}>
+    <Box bg="teal.600" py="16px" color="white" position="sticky" top={0} zIndex={100}>
       <Container maxW="container.xl">
-        <Flex justify="space-between" align="center" gap={4} wrap="wrap">
-          <Link href="/">
+        <Flex justify="space-between" align="center" gap="16px" wrap="wrap">
+          <Link href={`/${lang}`}>
             <Heading size="lg" color="white">E-Ticaret</Heading>
           </Link>
 
           <Suspense fallback={<Box w="300px" />}>
             <Box flex={1} display="flex" justifyContent="center">
-              <SearchInput />
+              <SearchInput lang={lang} />
             </Box>
           </Suspense>
 
-          <HStack gap={6}>
-            <Link href="/login">
+          <HStack gap="24px">
+            <Link href={`/${lang}/login`}>
               <Button variant="ghost" color="white" _hover={{ bg: "teal.700" }}>
                 Giriş Yap
               </Button>
             </Link>
-            <Link href="/cart">
+            <Link href={`/${lang}/cart`}>
               <Button variant="ghost" color="white" _hover={{ bg: "teal.700" }}>
-                Sepet <Badge ml={2} colorPalette="red">0</Badge>
+                Sepet <Badge ml="8px" colorPalette="red">0</Badge>
               </Button>
             </Link>
+
+            {/* Dil değiştirici */}
+            <HStack gap="4px">
+              <Link href={switchTo("tr")}>
+                <Button
+                  size="sm"
+                  variant={lang === "tr" ? "solid" : "ghost"}
+                  color="white"
+                  _hover={{ bg: "teal.700" }}
+                >
+                  TR
+                </Button>
+              </Link>
+              <Link href={switchTo("en")}>
+                <Button
+                  size="sm"
+                  variant={lang === "en" ? "solid" : "ghost"}
+                  color="white"
+                  _hover={{ bg: "teal.700" }}>
+                  EN
+                </Button>
+              </Link>
+            </HStack>
           </HStack>
         </Flex>
       </Container>
     </Box>
-  )
+  );
 }
