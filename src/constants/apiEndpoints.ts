@@ -29,6 +29,7 @@ export const UPDATE_PRODUCT: string = `${CATALOG_BASE_URL}/api/catalog/Products/
 export const DELETE_PRODUCT: string = `${CATALOG_BASE_URL}/api/catalog/Products/delete`;
 export const CREATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/create`;
 export const UPDATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/update`;
+export const DELETE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/delete`;
 
 // Orders
 export const GET_ALL_ORDERS: string = `${BASE_URL}/api/orders/getAll`;

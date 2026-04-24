@@ -1,0 +1,22 @@
+.header {
+  padding: var(--space-4) 0 var(--space-8);
+}
+
+.title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.description {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  max-width: 640px;
+  margin-bottom: var(--space-3);
+}
+
+.count {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

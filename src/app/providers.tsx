@@ -1,21 +1,17 @@
-"use client"
+"use client";
 
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react"
-import { ThemeProvider } from "next-themes"
-import { SessionProvider } from "next-auth/react"
-import { QueryProvider } from "@/providers/QueryProvider"
-import { ReduxProvider } from "@/providers/ReduxProvider"
-import { Toaster } from "react-hot-toast"
+import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ThemeProvider } from "next-themes";
+import { SessionProvider } from "next-auth/react";
+import { QueryProvider } from "@/providers/QueryProvider";
+import { ReduxProvider } from "@/providers/ReduxProvider";
+import { Toaster } from "react-hot-toast";
 
 /**
  * Provider hiyerarşisi:
- * SessionProvider (NextAuth) → QueryProvider → ReduxProvider → ChakraProvider → ThemeProvider
- *
- * Sıralama önemlidir:
- * - SessionProvider en dışta: session hook'ları her yerde kullanılabilir
- * - QueryProvider: TanStack Query ile server state yönetimi
- * - ReduxProvider: Redux ile UI state yönetimi
- * - ChakraProvider + ThemeProvider: UI framework
+ * SessionProvider → QueryProvider → ReduxProvider → ChakraProvider → ThemeProvider
+ * TranslationProvider → app/[lang]/layout.tsx tarafından yönetilir (lang param'a göre)
+ * Admin için → app/admin/(protected)/layout.tsx içinde hardcoded "tr"
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -31,5 +27,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
         </ReduxProvider>
       </QueryProvider>
     </SessionProvider>
-  )
+  );
 }

@@ -1,0 +1,145 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: var(--space-4);
+}
+
+.logo {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.searchForm {
+  flex: 1;
+  max-width: 480px;
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--space-10) 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  background: var(--color-bg-secondary);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+.searchButton {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.searchButton:hover {
+  color: var(--color-primary);
+}
+
+.searchIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+.iconButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.iconButton:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-primary);
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+}
+
+.cartBadge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  line-height: 1;
+}
+
+/* Mobile */
+@media (max-width: 639px) {
+  .searchForm {
+    display: none;
+  }
+
+  .inner {
+    height: 56px;
+  }
+}
+
+.mobileSearchToggle {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .mobileSearchToggle {
+    display: flex;
+  }
+}

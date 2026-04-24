@@ -1,0 +1,23 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-10);
+  padding: var(--space-4) 0 var(--space-16);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.imageSkeleton {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-xl);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
