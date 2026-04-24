@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import NextImage from "next/image";
-import { fetchFeaturedProducts, fetchCategories } from "@/infrastructure/api/fetchClient";
-import { ProductGrid } from "@/components/shop/ProductGrid/ProductGrid";
+import { fetchHomeData, fetchCategories } from "@/infrastructure/api/fetchClient";
+import { HomeProductsFeed } from "@/features/home/components/HomeProductsFeed";
 import { siteConfig } from "@/core/config/site";
 import styles from "./page.module.css";
 
@@ -17,12 +17,21 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const [productsRes, categoriesRes] = await Promise.all([
-    fetchFeaturedProducts().catch(() => null),
+  const [homeRes, categoriesRes] = await Promise.all([
+    fetchHomeData().catch(() => null),
     fetchCategories().catch(() => null),
   ]);
 
-  const featuredProducts = Array.isArray(productsRes?.data?.results) ? productsRes.data.results : [];
+  const rawFeatured = homeRes?.data?.featuredProducts ?? [];
+  const featuredProducts = rawFeatured.map((p) => ({
+    name: p.name,
+    slug: p.slug,
+    price: p.price,
+    imageUrl: p.coverImageUrl ?? p.imageUrls[0] ?? null,
+    categoryName: p.categoryName,
+    brandName: p.brandName,
+    rating: p.rating?.average,
+  }));
   const categories = Array.isArray(categoriesRes?.data?.results) ? categoriesRes.data.results : [];
 
   return (
@@ -91,18 +100,7 @@ export default async function HomePage() {
             Tümünü Gör
           </Link>
         </div>
-        <ProductGrid
-          products={featuredProducts.map((p) => ({
-            name: p.name,
-            slug: p.slug,
-            price: p.price,
-            imageUrl: p.imageUrls?.[0] ?? "",
-            categoryName: p.categoryName,
-            brandName: p.brandName,
-            rating: p.rating,
-          }))}
-          priorityCount={4}
-        />
+        <HomeProductsFeed initialProducts={featuredProducts} />
       </section>
     </div>
   );

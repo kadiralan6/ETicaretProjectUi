@@ -55,7 +55,7 @@ export default async function SearchPage({
         name: p.name,
         slug: p.slug,
         price: p.price,
-        imageUrl: p.imageUrls[0] ?? "",
+        imageUrl: p.imageUrls[0] ?? null,
         categoryName: p.categoryName,
         brandName: p.brandName,
         rating: p.rating,

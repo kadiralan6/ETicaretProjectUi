@@ -5,6 +5,9 @@ export const ADD_TO_BASKET: string = `${BASE_URL}/gateway/cart/ShoppingCartItems
 export const GET_BASKET: string = `${BASE_URL}/gateway/cart/ShoppingCartItems/GetAllShoppingCartItems`;
 export const REMOVE_FROM_BASKET: string = `${BASE_URL}/gateway/cart/ShoppingCartItems/DeleteShoppingCartItem`;
 
+// Catalog - Home
+export const GET_HOME_DATA: string = `${CATALOG_BASE_URL}/api/catalog/Home/getHomeData`;
+
 // Catalog - Brands
 export const GET_ALLFILTER_BRANDS: string = `${CATALOG_BASE_URL}/api/catalog/Brands/getAllFilter`;
 export const GET_BRAND_BY_ID: string = `${CATALOG_BASE_URL}/api/catalog/Brands/getById`;

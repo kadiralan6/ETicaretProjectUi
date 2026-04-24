@@ -4,6 +4,9 @@
  * Örn: NEXT_API_URLS.PRODUCTS → nextApiClient.get("/api/products")
  */
 export const NEXT_API_URLS = {
+  // Home
+  HOME: "/home",
+
   // Products
   PRODUCTS: "/products",
   PRODUCT_BY_ID: (id: string | number) => `/products/${id}`,

@@ -115,13 +115,18 @@ export function generateProductMetadata(product: {
   imageUrls: string[];
   categoryName: string;
   brandName: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 }): Metadata {
   const path = `/product/${product.slug}`;
-  const title = `${product.name} | ${product.brandName} - ${siteConfig.name}`;
+  const title =
+    product.metaTitle ||
+    `${product.name} | ${product.brandName} - ${siteConfig.name}`;
   const description =
-    product.description.length > 160
+    product.metaDescription ||
+    (product.description.length > 160
       ? product.description.slice(0, 157) + "..."
-      : product.description;
+      : product.description);
 
   return generatePageMetadata({
     title,

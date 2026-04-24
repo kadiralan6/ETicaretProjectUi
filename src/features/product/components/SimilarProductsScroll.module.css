@@ -1,0 +1,76 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ─── Scroll Track ───────────────────────────────────────── */
+
+.track {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  /* hide scrollbar */
+  scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
+  cursor: grab;
+  user-select: none;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.trackDragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+/* ─── Item ───────────────────────────────────────────────── */
+
+.item {
+  flex: 0 0 calc(25% - var(--space-3) * 3 / 4);
+  min-width: 150px;
+  scroll-snap-align: start;
+  /* smaller card override */
+  font-size: 0.9em;
+}
+
+@media (max-width: 640px) {
+  .item {
+    flex: 0 0 calc(50% - var(--space-3) / 2);
+  }
+}
+
+/* ─── Arrow Buttons ──────────────────────────────────────── */
+
+.arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.arrow:hover:not(:disabled) {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}

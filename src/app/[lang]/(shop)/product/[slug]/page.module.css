@@ -1,3 +1,5 @@
+/* ─── Layout ─────────────────────────────────────────────── */
+
 .product {
   display: grid;
   grid-template-columns: 1fr;
@@ -7,14 +9,17 @@
 
 @media (min-width: 768px) {
   .product {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 55% 1fr;
+    gap: var(--space-12);
+    align-items: start;
   }
 }
 
-/* ─── Gallery ────────────────────────────────────────────── */
+/* ─── Gallery Column ─────────────────────────────────────── */
 
-.gallery {
-  position: relative;
+.galleryCol {
+  position: sticky;
+  top: 80px;
 }
 
 .noImage {
@@ -25,44 +30,56 @@
   gap: var(--space-4);
   aspect-ratio: 1 / 1;
   background: var(--color-bg-tertiary);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-2xl);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
-/* ─── Info ────────────────────────────────────────────────── */
+/* ─── Info Column ────────────────────────────────────────── */
 
 .info {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
-.meta {
+/* ─── Badges ─────────────────────────────────────────────── */
+
+.badges {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.brandBadge {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: var(--color-primary-100);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  letter-spacing: 0.02em;
+}
+
+.badgeSep {
+  color: var(--color-text-muted);
   font-size: var(--text-sm);
 }
 
-.brand {
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-.separator {
-  color: var(--color-text-muted);
-}
-
-.category {
+.categoryBadge {
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
+
+/* ─── Title ──────────────────────────────────────────────── */
 
 .name {
   font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--color-text);
   line-height: var(--leading-tight);
+  margin: 0;
 }
 
 @media (min-width: 768px) {
@@ -71,17 +88,31 @@
   }
 }
 
+/* ─── Short Description ──────────────────────────────────── */
+
+.shortDesc {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
 /* ─── Rating ─────────────────────────────────────────────── */
 
 .rating {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
 }
 
 .star {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   color: var(--color-border);
 }
 
@@ -89,25 +120,39 @@
   color: var(--color-accent);
 }
 
-.ratingText {
-  margin-left: var(--space-2);
+.ratingAvg {
   font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text-secondary);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ratingCount {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 /* ─── Price ──────────────────────────────────────────────── */
 
 .priceBlock {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
   padding: var(--space-4) 0;
   border-top: 1px solid var(--color-border-light);
   border-bottom: 1px solid var(--color-border-light);
 }
 
 .price {
-  font-size: var(--text-3xl);
+  font-size: 2rem;
   font-weight: 800;
   color: var(--color-primary);
+  line-height: 1;
+}
+
+.currency {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-muted);
 }
 
 /* ─── Stock ──────────────────────────────────────────────── */
@@ -119,6 +164,9 @@
 }
 
 .inStock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-success);
@@ -139,29 +187,42 @@
   border-radius: var(--radius-sm);
 }
 
-/* ─── Code ───────────────────────────────────────────────── */
+/* ─── Similar Products ───────────────────────────────────── */
 
-.code {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+.similar {
+  margin-top: var(--space-16);
+  padding-top: var(--space-10);
+  border-top: 1px solid var(--color-border);
 }
+
+.similarTitle {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-6);
+}
+
 
 /* ─── Description ────────────────────────────────────────── */
 
-.descriptionSection {
+.descSection {
   padding-top: var(--space-6);
   border-top: 1px solid var(--color-border-light);
 }
 
-.descriptionTitle {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  margin-bottom: var(--space-3);
+.descTitle {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.description {
+.desc {
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
   color: var(--color-text-secondary);
   white-space: pre-line;
+  margin: 0;
 }

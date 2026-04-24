@@ -6,7 +6,7 @@ interface ProductCardProps {
   name: string;
   slug: string;
   price: number;
-  imageUrl: string;
+  imageUrl: string | null;
   categoryName: string;
   brandName: string;
   rating?: number;
@@ -28,15 +28,19 @@ export function ProductCard({
   return (
     <Link href={`/product/${slug}`} className={styles.card}>
       <div className={styles.imageWrapper}>
-        <Image
-          src={imageUrl}
-          alt={name}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className={styles.image}
-          priority={priority}
-          loading={priority ? "eager" : "lazy"}
-        />
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className={styles.image}
+            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+          />
+        ) : (
+          <div className={styles.imagePlaceholder} />
+        )}
         {badge && <span className={styles.badge}>{badge}</span>}
       </div>
       <div className={styles.body}>
