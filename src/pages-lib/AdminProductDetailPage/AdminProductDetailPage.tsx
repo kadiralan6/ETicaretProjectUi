@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Badge,
@@ -20,7 +20,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FiArrowLeft, FiSave, FiTrash2, FiUpload } from "react-icons/fi";
+import { FiArrowLeft, FiSave, FiTrash2, FiUpload, FiX } from "react-icons/fi";
 import toast from "react-hot-toast";
 
 import { useTranslation } from "@/providers/TranslationProvider";
@@ -29,7 +29,7 @@ import { NEXT_API_URLS } from "@/constants/nextApi";
 import { QUERY_KEYS } from "@/constants/queryKeyConstants";
 import { ROUTES } from "@/constants/routes";
 import { productSchema, type ProductSchemaType } from "@/validations/productSchema";
-import type { IAdminProductDetail } from "@/interfaces/IProduct";
+import type { IAdminProductDetail, IProductImage } from "@/interfaces/IProduct";
 import type { IBrand } from "@/interfaces/IBrand";
 import type { IAdminCategory } from "@/interfaces/ICategory";
 
@@ -54,9 +54,15 @@ export const AdminProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [productImages, setProductImages] = useState<IProductImage[]>([]);
+  const [pendingDeleteImages, setPendingDeleteImages] = useState<IProductImage[]>([]);
+  const [pendingAddFiles, setPendingAddFiles] = useState<File[]>([]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [hoveredImageUrl, setHoveredImageUrl] = useState<string | null>(null);
+  const [hasReordered, setHasReordered] = useState(false);
 
   const schema = productSchema(t);
 
@@ -68,6 +74,7 @@ export const AdminProductDetailPage = () => {
       return {
         ...data,
         imageUrls: data?.imageUrls ?? data?.ImageUrls ?? [],
+        images: data?.images ?? data?.Images ?? [],
       };
     },
     enabled: !!id,
@@ -117,11 +124,29 @@ export const AdminProductDetailPage = () => {
   const isActive = watch("isActive" as keyof ProductSchemaType);
   const isFeatured = watch("isFeatured" as keyof ProductSchemaType);
 
+  useEffect(() => {
+    if (!product) return;
+    if (product.images?.length) {
+      setProductImages(product.images);
+    } else if (product.imageUrls?.length) {
+      setProductImages(
+        product.imageUrls.map((url, i) => ({
+          id: 0,
+          productId: product.id,
+          url,
+          altText: null,
+          isCover: i === 0,
+          displayOrder: i,
+        })),
+      );
+    }
+  }, [product]);
+
   const onSubmit = async (data: ProductSchemaType) => {
     if (!product) return;
     setSaving(true);
-
     try {
+      // 1. Ürün alanlarını güncelle
       await nextApiClient.put(NEXT_API_URLS.PRODUCT_BY_ID(id), {
         id: product.id,
         ...data,
@@ -129,28 +154,88 @@ export const AdminProductDetailPage = () => {
         brandId: parseInt(data.brandId, 10),
       });
 
-      if (selectedFiles.length > 0) {
-        const imageFormData = new FormData();
-        selectedFiles.forEach((file) => imageFormData.append("Files", file));
-        imageFormData.append("IsCover", "true");
-        imageFormData.append("ProductId", String(product.id));
+      // 2. İşaretlenen resimleri sil (gerçek ID'si olanlar)
+      for (const img of pendingDeleteImages) {
+        if (img.id > 0) {
+          await nextApiClient.delete(NEXT_API_URLS.PRODUCT_IMAGES_BY_ID(img.id));
+        }
+      }
+      if (pendingDeleteImages.length > 0) setPendingDeleteImages([]);
 
-        await nextApiClient.put(NEXT_API_URLS.PRODUCT_IMAGES, imageFormData, {
+      // 3. Yeni eklenen resimleri yükle
+      if (pendingAddFiles.length > 0) {
+        const formData = new FormData();
+        pendingAddFiles.forEach((file) => formData.append("Files", file));
+        formData.append("ProductId", String(product.id));
+        formData.append("AltText", data.name);
+        await nextApiClient.post(NEXT_API_URLS.PRODUCT_IMAGES, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+        setPendingAddFiles([]);
+      }
+
+      // 4. Sadece sıralama değiştiyse güncelle
+      if (hasReordered) {
+        const imagesWithIds = productImages.filter((img) => img.id > 0);
+        if (imagesWithIds.length > 0) {
+          await nextApiClient.put(
+            NEXT_API_URLS.PRODUCT_IMAGES,
+            productImages.map((img, i) => ({ id: img.id, displayOrder: i })),
+          );
+        }
+        setHasReordered(false);
       }
 
       toast.success(t("product.updateSuccess"));
-      setSelectedFiles([]);
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.PRODUCT_DETAIL(id),
-      });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCT_DETAIL(id) });
     } catch (error: any) {
       const errorMessage = error.response?.data?.message;
       toast.error(errorMessage || t("product.updateError"));
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleMarkDeleteImage = (image: IProductImage) => {
+    setPendingDeleteImages((prev) => [...prev, image]);
+    setProductImages((prev) => prev.filter((img) => img.url !== image.url));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    const newFiles = Array.from(e.target.files);
+    setPendingAddFiles((prev) => [...prev, ...newFiles]);
+    e.target.value = "";
+  };
+
+  const handleDragStart = (index: number) => {
+    setDragIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === targetIndex) {
+      setDragIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const newImages = [...productImages];
+    const [dragged] = newImages.splice(dragIndex, 1);
+    newImages.splice(targetIndex, 0, dragged);
+    setProductImages(newImages);
+    setDragIndex(null);
+    setDragOverIndex(null);
+    setHasReordered(true);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleDelete = async () => {
@@ -439,35 +524,109 @@ export const AdminProductDetailPage = () => {
             </VStack>
           </GridItem>
 
-          {/* Existing images */}
+          {/* Image management */}
           <GridItem colSpan={{ base: 1, md: 2 }}>
-            <VStack align="stretch" gap="16px">
+            <VStack align="stretch" gap="12px">
               <Text fontWeight="semibold" fontSize="sm" color="gray.500">
                 {t("product.existingImages")}
               </Text>
-              {product.imageUrls?.length > 0 ? (
+              {productImages.length > 0 ? (
                 <Grid
                   templateColumns={{
-                    base: "1fr",
-                    sm: "repeat(2, 1fr)",
-                    lg: "repeat(3, 1fr)",
+                    base: "repeat(2, 1fr)",
+                    sm: "repeat(3, 1fr)",
+                    lg: "repeat(4, 1fr)",
                   }}
-                  gap="24px"
+                  gap="12px"
                 >
-                  {product.imageUrls.map((imageUrl, index) => (
+                  {productImages.map((image, index) => (
                     <Box
-                      key={`${imageUrl}-${index}`}
+                      key={image.url}
+                      position="relative"
+                      borderRadius="lg"
                       overflow="hidden"
-                      borderRadius="2xl"
                       shadow="sm"
+                      border="2px solid"
+                      borderColor={
+                        dragOverIndex === index && dragIndex !== index
+                          ? "purple.400"
+                          : "transparent"
+                      }
+                      draggable
+                      cursor="grab"
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) =>
+                        handleDragOver(e as unknown as React.DragEvent, index)
+                      }
+                      onDrop={(e) =>
+                        handleDrop(e as unknown as React.DragEvent, index)
+                      }
+                      onDragEnd={handleDragEnd}
+                      onMouseEnter={() => setHoveredImageUrl(image.url)}
+                      onMouseLeave={() => setHoveredImageUrl(null)}
+                      opacity={dragIndex === index ? 0.4 : 1}
+                      transition="opacity 0.15s, border-color 0.15s"
                     >
                       <Image
-                        src={imageUrl}
+                        src={image.url}
                         alt={`${product.name} - görsel ${index + 1}`}
                         w="full"
-                        h="260px"
+                        h="130px"
                         objectFit="cover"
+                        draggable={false}
+                        pointerEvents="none"
                       />
+                      {/* Dark overlay on hover */}
+                      <Box
+                        position="absolute"
+                        inset={0}
+                        bg="blackAlpha.400"
+                        opacity={hoveredImageUrl === image.url ? 1 : 0}
+                        transition="opacity 0.15s"
+                        pointerEvents="none"
+                      />
+                      {/* Delete button */}
+                      <Box
+                        position="absolute"
+                        top="6px"
+                        right="6px"
+                        bg="red.500"
+                        color="white"
+                        borderRadius="full"
+                        w="24px"
+                        h="24px"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                        opacity={hoveredImageUrl === image.url ? 1 : 0}
+                        transition="opacity 0.15s, background 0.15s"
+                        _hover={{ bg: "red.600" }}
+                        onClick={(e: React.MouseEvent) => {
+                          e.preventDefault();
+                          handleMarkDeleteImage(image);
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <FiX size={13} />
+                      </Box>
+                      {/* Cover badge */}
+                      {image.isCover && (
+                        <Box
+                          position="absolute"
+                          bottom="5px"
+                          left="5px"
+                          bg="blackAlpha.700"
+                          px="6px"
+                          py="2px"
+                          borderRadius="sm"
+                          fontSize="9px"
+                          fontWeight="bold"
+                          color="white"
+                          pointerEvents="none"
+                        >
+                          Kapak
+                        </Box>
+                      )}
                     </Box>
                   ))}
                 </Grid>
@@ -487,40 +646,34 @@ export const AdminProductDetailPage = () => {
               </Text>
               <Flex
                 border="2px dashed"
-                borderColor={
-                  selectedFiles.length > 0 ? "purple.300" : "gray.300"
-                }
+                borderColor={pendingAddFiles.length > 0 ? "purple.300" : "gray.300"}
                 borderRadius="md"
-                p="32px"
+                p="24px"
                 direction="column"
                 align="center"
                 justify="center"
-                bg={selectedFiles.length > 0 ? "purple.50" : "gray.50"}
+                bg={pendingAddFiles.length > 0 ? "purple.50" : "gray.50"}
                 _dark={{
-                  borderColor:
-                    selectedFiles.length > 0 ? "purple.600" : "gray.600",
-                  bg:
-                    selectedFiles.length > 0
-                      ? "rgba(128, 90, 213, 0.1)"
-                      : "transparent",
+                  borderColor: pendingAddFiles.length > 0 ? "purple.600" : "gray.600",
+                  bg: pendingAddFiles.length > 0
+                    ? "rgba(128, 90, 213, 0.1)"
+                    : "transparent",
                 }}
                 position="relative"
                 cursor="pointer"
               >
                 <FiUpload
-                  size={28}
-                  color={selectedFiles.length > 0 ? "#805AD5" : "gray"}
+                  size={24}
+                  color={pendingAddFiles.length > 0 ? "#805AD5" : "gray"}
                 />
                 <Text
-                  mt="12px"
-                  color={
-                    selectedFiles.length > 0 ? "purple.600" : "gray.500"
-                  }
+                  mt="10px"
+                  color={pendingAddFiles.length > 0 ? "purple.600" : "gray.500"}
                   fontWeight="medium"
                   fontSize="sm"
                 >
-                  {selectedFiles.length > 0
-                    ? `${selectedFiles.length} ${t("product.newImagesSelected")}`
+                  {pendingAddFiles.length > 0
+                    ? `${pendingAddFiles.length} resim seçildi`
                     : t("product.imageUploadNew")}
                 </Text>
                 <Input
@@ -532,16 +685,12 @@ export const AdminProductDetailPage = () => {
                   cursor="pointer"
                   accept="image/*"
                   multiple
-                  onChange={(e) => {
-                    if (e.target.files?.length) {
-                      setSelectedFiles(Array.from(e.target.files));
-                    }
-                  }}
+                  onChange={handleFileSelect}
                 />
               </Flex>
-              {selectedFiles.length > 0 && (
+              {pendingAddFiles.length > 0 && (
                 <VStack align="stretch" gap="4px">
-                  {selectedFiles.map((file, index) => (
+                  {pendingAddFiles.map((file, index) => (
                     <Flex
                       key={`${file.name}-${index}`}
                       justify="space-between"
@@ -553,11 +702,18 @@ export const AdminProductDetailPage = () => {
                       borderRadius="md"
                     >
                       <Text fontSize="sm">{file.name}</Text>
-                      {index === 0 && (
-                        <Text fontSize="xs" color="purple.500">
-                          {t("common.cover")}
-                        </Text>
-                      )}
+                      <Box
+                        onClick={() =>
+                          setPendingAddFiles((prev) =>
+                            prev.filter((_, i) => i !== index),
+                          )
+                        }
+                        color="gray.400"
+                        _hover={{ color: "red.500" }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <FiX size={14} />
+                      </Box>
                     </Flex>
                   ))}
                 </VStack>

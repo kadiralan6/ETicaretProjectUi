@@ -6,24 +6,36 @@ const DEFAULT_LOCALE = "tr";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // API routes, admin ve Next.js internal route'ları atla
+  // Skip API routes, admin, Next.js internals, and static files
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/_next") ||
+    pathname.startsWith("/sitemap") ||
+    pathname.startsWith("/robots") ||
     pathname.includes(".")
   ) {
     return NextResponse.next();
   }
 
-  // Pathname'de zaten locale var mı?
+  // Check if locale already present
   const hasLocale = LOCALES.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    (locale) =>
+      pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
   if (!hasLocale) {
+    // Detect preferred locale from Accept-Language header
+    const acceptLanguage = request.headers.get("accept-language") || "";
+    const preferred = acceptLanguage
+      .split(",")
+      .map((lang) => lang.split(";")[0].trim().slice(0, 2))
+      .find((lang) => LOCALES.includes(lang));
+
+    const locale = preferred || DEFAULT_LOCALE;
+
     return NextResponse.redirect(
-      new URL(`/${DEFAULT_LOCALE}${pathname}`, request.url)
+      new URL(`/${locale}${pathname}`, request.url),
     );
   }
 

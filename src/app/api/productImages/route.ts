@@ -14,10 +14,17 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const contentType = request.headers.get("content-type") || "";
   try {
-    const formData = await request.formData();
-    const response = await httpClient.put(UPDATE_PRODUCT_IMAGE, formData);
-    return NextResponse.json(response.data);
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const response = await httpClient.put(UPDATE_PRODUCT_IMAGE, formData);
+      return NextResponse.json(response.data);
+    } else {
+      const body = await request.json();
+      const response = await httpClient.put(UPDATE_PRODUCT_IMAGE, body);
+      return NextResponse.json(response.data);
+    }
   } catch (error: any) {
     const errorData = error.response?.data || {};
     return NextResponse.json(errorData, { status: errorData.StatusCode || 500 });

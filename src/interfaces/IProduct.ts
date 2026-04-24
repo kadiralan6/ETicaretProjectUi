@@ -28,6 +28,15 @@ export interface IProductListItem {
   stock: number;
 }
 
+export interface IProductImage {
+  id: number;
+  productId: number;
+  url: string;
+  altText: string | null;
+  isCover: boolean;
+  displayOrder?: number;
+}
+
 /** Admin — backend'den gelen ürün detay modeli */
 export interface IAdminProductDetail {
   id: number;
@@ -44,6 +53,7 @@ export interface IAdminProductDetail {
   brandId: number;
   brandName: string;
   imageUrls: string[];
+  images: IProductImage[];
   isDeleted: boolean;
   createdAt: string;
   createdBy: number | null;

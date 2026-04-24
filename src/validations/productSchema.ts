@@ -16,6 +16,7 @@ export const productSchema = (t: (key: string) => string) =>
       .number({ message: t("validationSchema.stockNumber") })
       .int(t("validationSchema.stockInt"))
       .min(0, t("validationSchema.stockMin")),
+    isActive: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
     categoryId: z.string().min(1, t("validationSchema.categoryRequired")),
     brandId: z.string().min(1, t("validationSchema.brandRequired")),

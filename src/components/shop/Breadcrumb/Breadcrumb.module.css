@@ -1,0 +1,37 @@
+.nav {
+  padding: var(--space-4) 0;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.separator {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  user-select: none;
+}
+
+.link {
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--color-primary);
+}
+
+.current {
+  color: var(--color-text);
+  font-weight: 500;
+}

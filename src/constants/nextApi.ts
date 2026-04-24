@@ -8,6 +8,7 @@ export const NEXT_API_URLS = {
   PRODUCTS: "/products",
   PRODUCT_BY_ID: (id: string | number) => `/products/${id}`,
   PRODUCT_IMAGES: "/productImages",
+  PRODUCT_IMAGES_BY_ID: (id: number | string) => `/productImages/${id}`,
 
   // Categories
   CATEGORIES_ALL_FILTER: "/categories/getAllFilter",
