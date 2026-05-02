@@ -120,7 +120,7 @@ export default async function CategoryPage({
     products.map((p) => ({
       name: p.name,
       url: `/product/${p.slug}`,
-      imageUrl: p.imageUrls[0] ?? "",
+      imageUrl: p.imageUrls[0] ?? null,
       price: p.price,
     })),
     category.name,
@@ -167,7 +167,7 @@ export default async function CategoryPage({
             name: p.name,
             slug: p.slug,
             price: p.price,
-            imageUrl: p.imageUrls[0] ?? "",
+            imageUrl: p.imageUrls[0] ?? null,
             categoryName: p.categoryName,
             brandName: p.brandName,
             rating: p.rating,

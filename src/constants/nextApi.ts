@@ -4,6 +4,9 @@
  * Örn: NEXT_API_URLS.PRODUCTS → nextApiClient.get("/api/products")
  */
 export const NEXT_API_URLS = {
+  // Home
+  HOME: "/home",
+
   // Products
   PRODUCTS: "/products",
   PRODUCT_BY_ID: (id: string | number) => `/products/${id}`,
@@ -20,10 +23,19 @@ export const NEXT_API_URLS = {
   BRAND_BY_ID: (id: string | number) => `/brands/${id}`,
   BRANDS_CREATE: "/brands/create",
 
-  // Basket
+  // Basket (legacy)
   BASKET: "/basket",
   BASKET_ITEM: (itemId: string) => `/basket/${itemId}`,
   BASKET_ADD_ITEM: "/basket/add-item-to-basket",
+
+  // Cart (Basket Service)
+  CART: "/carts",
+  CART_COUNT: "/carts/count",
+  CART_ITEMS: "/carts/items",
+  CART_ITEM: (cartItemId: number | string) => `/carts/items/${cartItemId}`,
+  CART_COUPON: "/carts/coupon",
+  CART_COUPON_REMOVE: (cartId: number | string) => `/carts/coupon/${cartId}`,
+  CART_CLEAR: "/carts/clear",
 
   // Orders
   ORDERS: "/orders",

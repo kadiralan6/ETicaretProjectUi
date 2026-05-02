@@ -50,6 +50,8 @@ export interface IAdminProductDetail {
   isFeatured: boolean;
   categoryId: number;
   categoryName: string;
+  parentCategoryId: number | null;
+  parentCategoryName: string | null;
   brandId: number;
   brandName: string;
   imageUrls: string[];

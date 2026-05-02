@@ -1,0 +1,259 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ─── Scroll Track ───────────────────────────────────────── */
+
+.track {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  /* hide scrollbar */
+  scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
+  cursor: grab;
+  user-select: none;
+  padding: var(--space-2) 0;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+.trackDragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+/* ─── Item ───────────────────────────────────────────────── */
+
+.item {
+  flex: 0 0 calc(25% - var(--space-4) * 3 / 4);
+  min-width: 160px;
+  scroll-snap-align: start;
+  /* smaller card override */
+  font-size: 0.9em;
+  transition: transform var(--transition-normal);
+  border-radius: var(--radius-xl);
+}
+
+.item:hover {
+  transform: translateY(-4px);
+}
+
+@media (max-width: 640px) {
+  .item {
+    flex: 0 0 calc(50% - var(--space-4) / 2);
+  }
+}
+
+/* ─── Arrow Buttons ──────────────────────────────────────── */
+
+.arrow {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    opacity var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.arrow:hover:not(:disabled) {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ─── Similar Product Card ───────────────────────────────── */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  height: 100%;
+  text-decoration: none;
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* cancel item hover when card handles it */
+.item:hover {
+  transform: none;
+}
+
+.cardImageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--color-bg-tertiary);
+}
+
+.cardImage {
+  object-fit: contain;
+  transition: transform var(--transition-normal);
+}
+
+.card:hover .cardImage {
+  transform: scale(1.03);
+}
+
+.cardImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg-tertiary);
+}
+
+/* ─── Card nav arrows ────────────────────────────────────── */
+
+.cardNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.cardImageWrapper:hover .cardNav {
+  opacity: 1;
+}
+
+.cardNav:hover {
+  background: #fff;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.cardNavPrev { left: 6px; }
+.cardNavNext { right: 6px; }
+
+/* ─── Card dots ──────────────────────────────────────────── */
+
+.cardDots {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+
+.cardDot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.5);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.cardDotActive {
+  background: #fff;
+  transform: scale(1.3);
+}
+
+/* ─── Card body ──────────────────────────────────────────── */
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--space-3);
+  gap: var(--space-1);
+}
+
+.cardCategory {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cardName {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: var(--leading-tight);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.cardBrand {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+.cardPrice {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.cardRating {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-xs);
+  color: var(--color-accent);
+}
+
+.cardRatingStar {
+  width: 13px;
+  height: 13px;
+}

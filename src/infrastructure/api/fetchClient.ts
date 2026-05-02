@@ -53,6 +53,98 @@ export async function fetchApi<T>(
 
 // Domain-specific fetchers with built-in caching strategies
 
+export async function fetchStorefrontProduct(slug: string) {
+  return fetchApi<{
+    isSuccess: boolean;
+    data: {
+      id: number;
+      name: string;
+      slug: string;
+      description: string;
+      shortDescription: string | null;
+      metaTitle: string | null;
+      metaDescription: string | null;
+      price: number;
+      currency: string;
+      stockQuantity: number;
+      isInStock: boolean;
+      isActive: boolean;
+      isFeatured: boolean;
+      createdAt: string;
+      category: { name: string; slug: string; imageUrl: string | null };
+      categoryPath: string;
+      brand: { name: string; slug: string };
+      breadcrumbs: Array<{ name: string; slug: string }>;
+      images: Array<{ url: string; altText: string | null; isCover: boolean }>;
+      rating: { average: number; count: number };
+    };
+  }>(`/api/catalog/StorefrontProducts/GetBySlug/${slug}`, {
+    revalidate: 60,
+    tags: ["product", `product-${slug}`],
+  });
+}
+
+export async function fetchSimilarProducts(slug: string, count = 8) {
+  return fetchApi<{
+    isSuccess: boolean;
+    data: Array<{
+      id: number;
+      name: string;
+      slug: string;
+      price: number;
+      coverImageUrl: string | null;
+      imageUrls: string[];
+      categoryName: string;
+      brandName: string;
+      rating: { average: number; count: number };
+    }>;
+  }>(`/api/catalog/StorefrontProducts/GetSimilar/${slug}?count=${count}`, {
+    revalidate: 120,
+    tags: ["similar", `similar-${slug}`],
+  });
+}
+
+export async function fetchHomeData(params?: {
+  page?: number;
+  pageSize?: number;
+  orderBy?: number;
+  orderType?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.pageSize) searchParams.set("pageSize", String(params.pageSize));
+  if (params?.orderBy !== undefined)
+    searchParams.set("OrderBy", String(params.orderBy));
+  if (params?.orderType !== undefined)
+    searchParams.set("orderType", String(params.orderType));
+  const query = searchParams.toString();
+  const endpoint = `/api/catalog/Home/getHomeData${query ? `?${query}` : ""}`;
+
+  return fetchApi<{
+    isSuccess: boolean;
+    data: {
+      featuredProducts: Array<{
+        id: number;
+        name: string;
+        slug: string;
+        price: number;
+        coverImageUrl: string | null;
+        imageUrls: string[];
+        categoryName: string;
+        brandName: string;
+        rating: { average: number; count: number };
+      }>;
+      page: number;
+      pageSize: number;
+      totalCount: number;
+      totalPages: number;
+    };
+  }>(endpoint, {
+    revalidate: 300,
+    tags: ["home"],
+  });
+}
+
 export async function fetchProducts(params?: {
   page?: number;
   pageSize?: number;

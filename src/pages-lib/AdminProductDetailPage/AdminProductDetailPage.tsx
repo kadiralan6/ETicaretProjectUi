@@ -31,7 +31,6 @@ import { ROUTES } from "@/constants/routes";
 import { productSchema, type ProductSchemaType } from "@/validations/productSchema";
 import type { IAdminProductDetail, IProductImage } from "@/interfaces/IProduct";
 import type { IBrand } from "@/interfaces/IBrand";
-import type { IAdminCategory } from "@/interfaces/ICategory";
 
 const DetailField = ({ label, value }: { label: string; value: string }) => (
   <VStack align="stretch" gap="8px">
@@ -63,6 +62,7 @@ export const AdminProductDetailPage = () => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [hoveredImageUrl, setHoveredImageUrl] = useState<string | null>(null);
   const [hasReordered, setHasReordered] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const schema = productSchema(t);
 
@@ -100,7 +100,6 @@ export const AdminProductDetailPage = () => {
     },
   });
 
-  const categories: IAdminCategory[] = categoriesData ?? [];
   const brands: IBrand[] = brandsData ?? [];
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } =
@@ -123,6 +122,33 @@ export const AdminProductDetailPage = () => {
 
   const isActive = watch("isActive" as keyof ProductSchemaType);
   const isFeatured = watch("isFeatured" as keyof ProductSchemaType);
+
+  useEffect(() => {
+    if (!lightboxUrl) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxUrl(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxUrl]);
+
+  // categories/brands product'tan sonra yüklenirse select boş kalır,
+  // bu effect her ikisi de hazır olduğunda doğru değeri set eder.
+  useEffect(() => {
+    if (!product || !categoriesData?.length) return;
+    setValue("categoryId", String(product.categoryId ?? ""), {
+      shouldDirty: false,
+      shouldValidate: false,
+    });
+  }, [categoriesData, product, setValue]);
+
+  useEffect(() => {
+    if (!product || !brandsData?.length) return;
+    setValue("brandId", String(product.brandId ?? ""), {
+      shouldDirty: false,
+      shouldValidate: false,
+    });
+  }, [brandsData, product, setValue]);
 
   useEffect(() => {
     if (!product) return;
@@ -280,6 +306,44 @@ export const AdminProductDetailPage = () => {
   }
 
   return (
+    <>
+    {lightboxUrl && (
+      <Box
+        position="fixed"
+        inset={0}
+        zIndex={9999}
+        bg="blackAlpha.900"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        onClick={() => setLightboxUrl(null)}
+      >
+        <Box
+          position="relative"
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Image
+            src={lightboxUrl}
+            alt="Büyük görünüm"
+            maxW="90vw"
+            maxH="90vh"
+            objectFit="contain"
+            borderRadius="md"
+          />
+          <Box
+            position="absolute"
+            top="-40px"
+            right="0"
+            color="white"
+            cursor="pointer"
+            onClick={() => setLightboxUrl(null)}
+            _hover={{ color: "gray.300" }}
+          >
+            <FiX size={28} />
+          </Box>
+        </Box>
+      </Box>
+    )}
     <Box
       bg="white"
       _dark={{ bg: "gray.800" }}
@@ -426,28 +490,39 @@ export const AdminProductDetailPage = () => {
 
           <VStack align="stretch" gap="8px">
             <Text fontWeight="semibold" fontSize="sm" color="gray.500">
-              {t("product.category")}
+              Kategori
             </Text>
-            <select
-              {...register("categoryId")}
-              style={{
-                height: "40px",
-                padding: "0 12px",
-                borderRadius: "6px",
-                border: "1px solid #E2E8F0",
-                background: "transparent",
-                width: "100%",
-                color: "inherit",
-              }}
-            >
-              <option value="">{t("product.selectCategory")}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <Input
+              value={
+                product.parentCategoryId != null
+                  ? (product.parentCategoryName ?? "")
+                  : product.categoryName
+              }
+              readOnly
+              bg="gray.50"
+              color="gray.600"
+              _dark={{ bg: "whiteAlpha.50", color: "gray.400" }}
+              cursor="not-allowed"
+            />
+            {/* categoryId gizli — form submit'te kullanılır */}
+            <input type="hidden" {...register("categoryId")} />
           </VStack>
+
+          {product.parentCategoryId != null && (
+            <VStack align="stretch" gap="8px">
+              <Text fontWeight="semibold" fontSize="sm" color="gray.500">
+                Alt Kategori
+              </Text>
+              <Input
+                value={product.categoryName}
+                readOnly
+                bg="gray.50"
+                color="gray.600"
+                _dark={{ bg: "whiteAlpha.50", color: "gray.400" }}
+                cursor="not-allowed"
+              />
+            </VStack>
+          )}
 
           <VStack align="stretch" gap="8px">
             <Text fontWeight="semibold" fontSize="sm" color="gray.500">
@@ -553,7 +628,7 @@ export const AdminProductDetailPage = () => {
                           : "transparent"
                       }
                       draggable
-                      cursor="grab"
+                      cursor="pointer"
                       onDragStart={() => handleDragStart(index)}
                       onDragOver={(e) =>
                         handleDragOver(e as unknown as React.DragEvent, index)
@@ -564,15 +639,18 @@ export const AdminProductDetailPage = () => {
                       onDragEnd={handleDragEnd}
                       onMouseEnter={() => setHoveredImageUrl(image.url)}
                       onMouseLeave={() => setHoveredImageUrl(null)}
+                      onClick={() => setLightboxUrl(image.url)}
                       opacity={dragIndex === index ? 0.4 : 1}
                       transition="opacity 0.15s, border-color 0.15s"
+                      bg="gray.100"
+                      _dark={{ bg: "gray.700" }}
                     >
                       <Image
                         src={image.url}
                         alt={`${product.name} - görsel ${index + 1}`}
                         w="full"
-                        h="130px"
-                        objectFit="cover"
+                        h="140px"
+                        objectFit="contain"
                         draggable={false}
                         pointerEvents="none"
                       />
@@ -603,6 +681,7 @@ export const AdminProductDetailPage = () => {
                         _hover={{ bg: "red.600" }}
                         onClick={(e: React.MouseEvent) => {
                           e.preventDefault();
+                          e.stopPropagation();
                           handleMarkDeleteImage(image);
                         }}
                         style={{ cursor: "pointer" }}
@@ -766,5 +845,6 @@ export const AdminProductDetailPage = () => {
         </Grid>
       </form>
     </Box>
+    </>
   );
 };

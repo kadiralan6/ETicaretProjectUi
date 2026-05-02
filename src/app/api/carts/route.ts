@@ -1,0 +1,26 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import httpClient from "@/util/httpClient";
+import { authOptions } from "@/providers/AuthProvider";
+import { CART_GET_OR_CREATE } from "@/constants/apiEndpoints";
+
+// GET /api/carts → GET /api/basket/carts/getOrCreate/{userId}
+export async function GET() {
+  try {
+    const session = (await getServerSession(authOptions)) as any;
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const response = await httpClient.get(`${CART_GET_OR_CREATE}/${userId}`);
+    // Unwrap backend envelope: { isSuccess, statusCode, data: ICart }
+    return NextResponse.json(response.data?.data ?? response.data);
+  } catch (error: any) {
+    const errorData = error.response?.data || {};
+    return NextResponse.json(errorData, {
+      status: error.response?.status || 500,
+    });
+  }
+}

@@ -9,6 +9,7 @@ import {
   generateWebSiteJsonLd,
   JsonLdScript,
 } from "@/core/seo/jsonLd";
+import { fetchCategories } from "@/infrastructure/api/fetchClient";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -41,12 +42,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ShopLayout({ children }: { children: ReactNode }) {
+export default async function ShopLayout({ children }: { children: ReactNode }) {
+  const res = await fetchCategories().catch(() => null);
+  const categories = res?.data?.results
+    ?.filter((c) => c.isActive && c.parentCategoryId === null)
+    ?.slice(0, 6)
+    ?.map((c) => ({ name: c.name, slug: c.slug })) || [];
+
   return (
     <>
       <JsonLdScript data={generateOrganizationJsonLd()} />
       <JsonLdScript data={generateWebSiteJsonLd()} />
-      <Header />
+      <Header categories={categories} />
       <main id="main-content">{children}</main>
       <Footer />
     </>
