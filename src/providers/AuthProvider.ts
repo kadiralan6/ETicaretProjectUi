@@ -2,13 +2,14 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
 
 /**
  * NextAuth v4 yapılandırması.
  *
  * CredentialsProvider ile email/şifre girişi yapılır.
- * Backend'den dönen access token JWT session'da saklanır.
+ * Backend Identity Service response formatı:
+ *   { isSuccess, statusCode, data: { accessToken, refreshToken, expiration, userId, email, firstName, lastName, roles } }
  * httpClient bu token'ı her backend çağrısında Authorization header'ına ekler.
  */
 export const authOptions: NextAuthOptions = {
@@ -25,22 +26,27 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Backend login endpoint'ine istek at
-          const response = await axios.post(`${BACKEND_URL}/auth/login`, {
-            email: credentials.email,
-            password: credentials.password,
-          });
+          const response = await axios.post(
+            `${BACKEND_URL}/api/identity/auth/login`,
+            {
+              email: credentials.email,
+              password: credentials.password,
+            },
+          );
 
-          const data = response.data;
+          // Backend: { isSuccess, statusCode, data: { accessToken, refreshToken, userId, ... } }
+          const body = response.data;
 
-          if (data && data.token) {
-            // NextAuth'un beklediği user nesnesi
+          if (body?.isSuccess && body?.data?.accessToken) {
+            const tokenData = body.data;
             return {
-              id: data.user?.id || "1",
-              email: data.user?.email || credentials.email,
-              name: `${data.user?.firstName || ""} ${data.user?.lastName || ""}`.trim(),
-              accessToken: data.token,
-              refreshToken: data.refreshToken,
+              id: String(tokenData.userId),
+              email: tokenData.email,
+              name: `${tokenData.firstName || ""} ${tokenData.lastName || ""}`.trim(),
+              accessToken: tokenData.accessToken,
+              refreshToken: tokenData.refreshToken,
+              expiration: tokenData.expiration,
+              role: tokenData.roles?.[0] ?? "User",
             };
           }
 
@@ -50,7 +56,10 @@ export const authOptions: NextAuthOptions = {
 
           // Mock fallback — backend hazır olana kadar
           // TODO: Backend hazır olduğunda bu bloğu kaldır
-          if (credentials.email === "admin@test.com" && credentials.password === "123456") {
+          if (
+            credentials.email === "admin@test.com" &&
+            credentials.password === "123456"
+          ) {
             return {
               id: "mock-admin-1",
               email: "admin@test.com",
@@ -61,14 +70,17 @@ export const authOptions: NextAuthOptions = {
             };
           }
 
-          if (credentials.email === "user@test.com" && credentials.password === "123456") {
+          if (
+            credentials.email === "user@test.com" &&
+            credentials.password === "123456"
+          ) {
             return {
               id: "mock-user-1",
               email: "user@test.com",
               name: "Test User",
               accessToken: "mock-jwt-token-user",
               refreshToken: "mock-refresh-token",
-              role: "Customer",
+              role: "User",
             };
           }
 
@@ -80,11 +92,13 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // İlk login'de user nesnesi gelir — token'a kaydet
+      // İlk login'de user nesnesi gelir — JWT token'a kaydet
       if (user) {
         token.accessToken = (user as any).accessToken;
         token.refreshToken = (user as any).refreshToken;
+        token.expiration = (user as any).expiration;
         token.role = (user as any).role;
+        token.userId = (user as any).id;
       }
       return token;
     },
@@ -95,9 +109,11 @@ export const authOptions: NextAuthOptions = {
         ...session,
         accessToken: {
           token: token.accessToken as string,
+          expiration: token.expiration as string,
         },
         user: {
           ...session.user,
+          id: token.userId as string,
           role: token.role as string,
         },
       };
@@ -105,14 +121,15 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: "/login",        // Özel login sayfamız
-    error: "/login",          // Hata durumunda login'e yönlendir
+    signIn: "/tr/login",
+    error: "/tr/login",
   },
 
   session: {
-    strategy: "jwt",          // JWT tabanlı session
-    maxAge: 24 * 60 * 60,     // 24 saat
+    strategy: "jwt",
+    maxAge: 24 * 60 * 60, // 24 saat
   },
 
-  secret: process.env.NEXTAUTH_SECRET || "development-secret-change-in-production",
+  secret:
+    process.env.NEXTAUTH_SECRET || "development-secret-change-in-production",
 };

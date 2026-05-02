@@ -11,6 +11,7 @@ import {
 import { Breadcrumb } from "@/components/shop/Breadcrumb/Breadcrumb";
 import { AddToCartButton } from "@/features/product/components/AddToCartButton";
 import { ProductImageGallery } from "@/features/product/components/ProductImageGallery";
+import { TrustBadges } from "@/features/product/components/TrustBadges";
 import styles from "./page.module.css";
 
 export const revalidate = 60;
@@ -50,15 +51,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const p = res.data;
 
   const similarRes = await fetchSimilarProducts(slug, 8).catch(() => null);
-  const similarProducts = (similarRes?.data ?? []).map((s) => ({
-    name: s.name,
-    slug: s.slug,
-    price: s.price,
-    imageUrl: s.coverImageUrl ?? s.imageUrls[0] ?? null,
-    categoryName: s.categoryName,
-    brandName: s.brandName,
-    rating: s.rating?.average,
-  }));
+  const similarProducts = (similarRes?.data ?? []).map((s) => {
+    const coverUrl = s.coverImageUrl ?? null;
+    const allUrls = s.imageUrls ?? [];
+    // put cover first, then the rest deduped
+    const imageUrls = coverUrl
+      ? [coverUrl, ...allUrls.filter((u) => u !== coverUrl)]
+      : allUrls;
+    return {
+      name: s.name,
+      slug: s.slug,
+      price: s.price,
+      imageUrls,
+      categoryName: s.categoryName,
+      brandName: s.brandName,
+      rating: s.rating?.average,
+    };
+  });
   const coverImage = p.images.find((img) => img.isCover) ?? p.images[0];
 
   const productJsonLd = generateProductJsonLd({
@@ -93,6 +102,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
     { label: p.name },
   ];
 
+  // Conditional data (future-proof for backend extensions)
+  const hasOldPrice = false; // p.oldPrice && p.oldPrice > p.price
+  const oldPrice = 0;
+  const discountPercent = hasOldPrice
+    ? Math.round(((oldPrice - p.price) / oldPrice) * 100)
+    : 0;
+
+  // Specs & features — conditional render when backend supports them
+  const specifications: Array<{ label: string; value: string }> = [];
+  const features: string[] = [];
+
   return (
     <>
       <JsonLdScript data={productJsonLd} />
@@ -102,7 +122,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <Breadcrumb items={breadcrumbItems} />
 
         <div className={styles.product}>
-          {/* ── Gallery ── */}
+          {/* ── Gallery Column ── */}
           <div className={styles.galleryCol}>
             {p.images.length > 0 ? (
               <ProductImageGallery
@@ -121,7 +141,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             )}
           </div>
 
-          {/* ── Info ── */}
+          {/* ── Info Column ── */}
           <div className={styles.info}>
             {/* Brand + Category */}
             <div className={styles.badges}>
@@ -159,12 +179,24 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </div>
             )}
 
-            {/* Price */}
+            {/* Price Block */}
             <div className={styles.priceBlock}>
-              <span className={styles.price}>
-                {p.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-              </span>
-              <span className={styles.currency}>{p.currency}</span>
+              <div className={styles.priceRow}>
+                {hasOldPrice && (
+                  <>
+                    <span className={styles.oldPrice}>
+                      {oldPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺
+                    </span>
+                    <span className={styles.discountBadge}>%{discountPercent} İNDİRİM</span>
+                  </>
+                )}
+              </div>
+              <div className={styles.currentPriceRow}>
+                <span className={styles.price}>
+                  {p.price.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
+                </span>
+                <span className={styles.currency}>{p.currency}</span>
+              </div>
             </div>
 
             {/* Stock */}
@@ -177,14 +209,29 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   Stokta var
                 </span>
               ) : (
-                <span className={styles.outOfStock}>Stokta yok</span>
+                <span className={styles.outOfStock}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                  Stokta yok
+                </span>
               )}
               {p.isInStock && p.stockQuantity <= 5 && (
-                <span className={styles.lowStock}>Son {p.stockQuantity} ürün!</span>
+                <span className={styles.lowStock}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  Son {p.stockQuantity} ürün!
+                </span>
               )}
             </div>
 
-            {/* Add to cart */}
+            {/* Divider */}
+            <div className={styles.divider} />
+
+            {/* Add to cart + Buy Now + Wishlist */}
             <AddToCartButton
               product={{
                 id: p.id,
@@ -197,18 +244,82 @@ export default async function ProductPage({ params }: ProductPageProps) {
               disabled={!p.isInStock}
             />
 
+            {/* Trust Badges */}
+            <TrustBadges />
+
             {/* Description */}
             {p.description && (
               <div className={styles.descSection}>
-                <h2 className={styles.descTitle}>Ürün Açıklaması</h2>
+                <h2 className={styles.sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                  Ürün Açıklaması
+                </h2>
                 <p className={styles.desc}>{p.description}</p>
+              </div>
+            )}
+
+            {/* Technical Specifications — conditional */}
+            {specifications.length > 0 && (
+              <div className={styles.specsSection}>
+                <h2 className={styles.sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                  Teknik Özellikler
+                </h2>
+                <table className={styles.specsTable}>
+                  <tbody>
+                    {specifications.map((spec, i) => (
+                      <tr key={i} className={styles.specRow}>
+                        <td className={styles.specLabel}>{spec.label}</td>
+                        <td className={styles.specValue}>{spec.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Features List — conditional */}
+            {features.length > 0 && (
+              <div className={styles.featuresSection}>
+                <h2 className={styles.sectionTitle}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <polyline points="9 11 12 14 22 4" />
+                    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                  </svg>
+                  Özellikler
+                </h2>
+                <ul className={styles.featuresList}>
+                  {features.map((feature, i) => (
+                    <li key={i} className={styles.featureItem}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
         </div>
+
+        {/* ── Similar Products ── */}
         {similarProducts.length > 0 && (
           <section className={styles.similar}>
-            <h2 className={styles.similarTitle}>Benzer Ürünler</h2>
+            <div className={styles.similarHeader}>
+              <h2 className={styles.similarTitle}>Benzer Ürünler</h2>
+              <p className={styles.similarSubtitle}>Beğenebileceğiniz diğer ürünler</p>
+            </div>
             <SimilarProductsScroll products={similarProducts} />
           </section>
         )}

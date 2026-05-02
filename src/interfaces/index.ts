@@ -26,6 +26,14 @@ export type {
   IUpdateBasketItemRequest,
 } from "./IBasket";
 export type {
+  ICart,
+  ICartItem,
+  ICartItemCount,
+  IAddCartItemRequest,
+  IUpdateCartItemRequest,
+  IApplyCouponRequest,
+} from "./ICart";
+export type {
   IOrder,
   IOrderItem,
   IOrderStatus,

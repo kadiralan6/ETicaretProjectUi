@@ -3,14 +3,43 @@
 import { useRouter } from "next/navigation";
 import { useState, FormEvent } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/features/cart/store";
+import nextApiClient from "@/util/nextApiClient";
+import { NEXT_API_URLS } from "@/constants/nextApi";
+import type { ICartItemCount } from "@/interfaces/ICart";
 import styles from "./Header.module.css";
 
-export function Header() {
+export interface CategoryLink {
+  name: string;
+  slug: string;
+}
+
+export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
   const router = useRouter();
+  const { status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
-  const totalItems = useCartStore((s) => s.getTotalItems());
-  const toggleCart = useCartStore((s) => s.toggleCart);
+
+  const isAuthenticated = status === "authenticated";
+
+  // Authenticated: fetch badge count from API
+  const { data: cartCount } = useQuery<ICartItemCount>({
+    queryKey: ["cart-count"],
+    queryFn: () =>
+      nextApiClient.get(NEXT_API_URLS.CART_COUNT).then((r) => r.data),
+    enabled: isAuthenticated,
+    // Refetch every 60 s in background to stay fresh
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  // Guest: use local Zustand store
+  const guestItemCount = useCartStore((s) => s.getTotalItems());
+
+  const totalItems = isAuthenticated
+    ? (cartCount?.totalQuantity ?? 0)
+    : guestItemCount;
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -22,42 +51,56 @@ export function Header() {
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
-        <Link href="/" className={styles.logo}>
-          E-Ticaret
-        </Link>
 
+        {/* Left: Logo & Navigation */}
+        <div className={styles.leftSection}>
+          <Link href="/" className={styles.logoGroup}>
+            <div className={styles.logoIcon}>
+              <span className={styles.logoInitial}>N</span>
+            </div>
+            <span className={styles.logoText}>Nova</span>
+          </Link>
+
+          <nav className={styles.desktopNav}>
+            <Link href="/products" className={styles.navLink}>Ürünler</Link>
+            {categories.map((cat) => (
+              <Link key={cat.slug} href={`/category/${cat.slug}`} className={styles.navLink}>
+                {cat.name}
+              </Link>
+            ))}
+            <Link href="/campaigns" className={styles.navLink}>Kampanyalar</Link>
+          </nav>
+        </div>
+
+        {/* Center: Search */}
         <form
           className={styles.searchForm}
           onSubmit={handleSearch}
           role="search"
         >
-          <input
-            type="search"
-            className={styles.searchInput}
-            placeholder="Ürün ara..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Ürün ara"
-          />
-          <button
-            type="submit"
-            className={styles.searchButton}
-            aria-label="Ara"
-          >
+          <div className={styles.searchWrapper}>
             <svg
-              className={styles.searchIcon}
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              className={styles.searchIconLeft}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              <path
-                fillRule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clipRule="evenodd"
-              />
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-          </button>
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Search 400+ products"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Ürün ara"
+            />
+          </div>
         </form>
 
+        {/* Right: Actions */}
         <div className={styles.actions}>
           <button
             className={`${styles.iconButton} ${styles.mobileSearchToggle}`}
@@ -70,47 +113,61 @@ export function Header() {
           >
             <svg
               className={styles.icon}
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
             >
-              <path
-                fillRule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clipRule="evenodd"
-              />
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </button>
+
+          <Link href="/wishlist" className={styles.iconButton} aria-label="Favoriler">
+            <svg
+              className={styles.icon}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </Link>
 
           <Link href="/account" className={styles.iconButton} aria-label="Hesabım">
             <svg
               className={styles.icon}
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
             >
-              <path
-                fillRule="evenodd"
-                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                clipRule="evenodd"
-              />
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
             </svg>
           </Link>
 
-          <button
+          <Link
+            href="/cart"
             className={styles.iconButton}
-            onClick={toggleCart}
             aria-label={`Sepet (${totalItems} ürün)`}
           >
             <svg
               className={styles.icon}
-              viewBox="0 0 20 20"
-              fill="currentColor"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
             >
-              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
             </svg>
             {totalItems > 0 && (
               <span className={styles.cartBadge}>{totalItems}</span>
             )}
-          </button>
+          </Link>
         </div>
       </div>
     </header>

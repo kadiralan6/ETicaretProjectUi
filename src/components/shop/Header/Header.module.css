@@ -2,39 +2,108 @@
   position: sticky;
   top: 0;
   z-index: var(--z-header);
-  background: var(--color-bg);
+  background: #fdfdfd;
   border-bottom: 1px solid var(--color-border);
+  backdrop-filter: blur(8px);
 }
 
 .inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  gap: var(--space-4);
+  height: 72px;
+  gap: var(--space-6);
 }
 
-.logo {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--color-primary);
-  flex-shrink: 0;
+/* ─── Left Section ───────────────────────────────────────── */
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
 }
+
+.logoGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #000;
+  color: #fff;
+  border-radius: 6px;
+}
+
+.logoInitial {
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--font-sans);
+}
+
+.logoText {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: -0.02em;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+.desktopNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+}
+
+.navLink {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
+
+/* ─── Center: Search ─────────────────────────────────────── */
 
 .searchForm {
   flex: 1;
-  max-width: 480px;
+  max-width: 600px;
+}
+
+.searchWrapper {
   position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.searchIconLeft {
+  position: absolute;
+  left: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
-  height: 40px;
-  padding: 0 var(--space-10) 0 var(--space-4);
+  height: 44px;
+  padding: 0 var(--space-4) 0 44px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
-  background: var(--color-bg-secondary);
+  background: var(--color-bg);
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -43,41 +112,19 @@
 
 .searchInput:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
+  box-shadow: 0 0 0 3px var(--color-primary-50);
 }
 
 .searchInput::placeholder {
   color: var(--color-text-muted);
 }
 
-.searchButton {
-  position: absolute;
-  right: var(--space-2);
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-  transition: color var(--transition-fast);
-}
-
-.searchButton:hover {
-  color: var(--color-primary);
-}
-
-.searchIcon {
-  width: 18px;
-  height: 18px;
-}
+/* ─── Right: Actions ─────────────────────────────────────── */
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-2);
   flex-shrink: 0;
 }
 
@@ -86,10 +133,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
+  color: var(--color-text);
   transition:
     background-color var(--transition-fast),
     color var(--transition-fast);
@@ -97,7 +144,6 @@
 
 .iconButton:hover {
   background: var(--color-bg-secondary);
-  color: var(--color-primary);
 }
 
 .icon {
@@ -107,15 +153,15 @@
 
 .cartBadge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 4px;
+  right: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
-  background: var(--color-primary);
+  background: var(--color-secondary); /* Purple color from image */
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -123,23 +169,28 @@
   line-height: 1;
 }
 
-/* Mobile */
-@media (max-width: 639px) {
-  .searchForm {
-    display: none;
-  }
-
-  .inner {
-    height: 56px;
-  }
-}
+/* ─── Mobile Responsive ──────────────────────────────────── */
 
 .mobileSearchToggle {
   display: none;
 }
 
-@media (max-width: 639px) {
+@media (max-width: 1024px) {
+  .desktopNav {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .searchForm {
+    display: none;
+  }
+  
   .mobileSearchToggle {
     display: flex;
+  }
+
+  .inner {
+    height: 64px;
   }
 }

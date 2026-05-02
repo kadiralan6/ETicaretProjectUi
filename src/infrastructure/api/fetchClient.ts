@@ -104,7 +104,22 @@ export async function fetchSimilarProducts(slug: string, count = 8) {
   });
 }
 
-export async function fetchHomeData() {
+export async function fetchHomeData(params?: {
+  page?: number;
+  pageSize?: number;
+  orderBy?: number;
+  orderType?: number;
+}) {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.pageSize) searchParams.set("pageSize", String(params.pageSize));
+  if (params?.orderBy !== undefined)
+    searchParams.set("OrderBy", String(params.orderBy));
+  if (params?.orderType !== undefined)
+    searchParams.set("orderType", String(params.orderType));
+  const query = searchParams.toString();
+  const endpoint = `/api/catalog/Home/getHomeData${query ? `?${query}` : ""}`;
+
   return fetchApi<{
     isSuccess: boolean;
     data: {
@@ -119,8 +134,12 @@ export async function fetchHomeData() {
         brandName: string;
         rating: { average: number; count: number };
       }>;
+      page: number;
+      pageSize: number;
+      totalCount: number;
+      totalPages: number;
     };
-  }>("/api/catalog/Home/getHomeData", {
+  }>(endpoint, {
     revalidate: 300,
     tags: ["home"],
   });

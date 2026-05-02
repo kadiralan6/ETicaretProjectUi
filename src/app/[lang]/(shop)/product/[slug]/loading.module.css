@@ -7,17 +7,61 @@
 
 @media (min-width: 768px) {
   .grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 55% 1fr;
+    gap: var(--space-12);
   }
 }
 
+.galleryCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 .imageSkeleton {
+  width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-2xl);
+}
+
+.thumbnailSkeletonWrapper {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.thumbnailSkeleton {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
 }
 
 .info {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
+}
+
+.badgeSkeletonWrapper {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.priceBlockSkeleton {
+  width: 100%;
+  height: 100px;
+  border-radius: var(--radius-xl);
+}
+
+.ctaGroupSkeleton {
+  display: flex;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.trustBadgesSkeleton {
+  width: 100%;
+  height: 90px;
+  border-radius: var(--radius-xl);
+  margin-top: var(--space-2);
 }

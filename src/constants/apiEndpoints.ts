@@ -34,11 +34,25 @@ export const CREATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/Pro
 export const UPDATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/update`;
 export const DELETE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/delete`;
 
+// Cart (Basket Service)
+export const CART_GET_ITEM_COUNT: string = `${BASE_URL}/api/basket/carts/getItemCount`;
+export const CART_GET_OR_CREATE: string = `${BASE_URL}/api/basket/carts/getOrCreate`;
+export const CART_GET_BY_ID: string = `${BASE_URL}/api/basket/carts/getById`;
+export const CART_ADD_ITEM: string = `${BASE_URL}/api/basket/carts/addItem`;
+export const CART_UPDATE_ITEM: string = `${BASE_URL}/api/basket/carts/updateItem`;
+export const CART_REMOVE_ITEM: string = `${BASE_URL}/api/basket/carts/removeItem`;
+export const CART_APPLY_COUPON: string = `${BASE_URL}/api/basket/carts/applyCoupon`;
+export const CART_REMOVE_COUPON: string = `${BASE_URL}/api/basket/carts/removeCoupon`;
+export const CART_CLEAR: string = `${BASE_URL}/api/basket/carts/clear`;
+
 // Orders
 export const GET_ALL_ORDERS: string = `${BASE_URL}/api/orders/getAll`;
 export const GET_ORDER_BY_ID: string = `${BASE_URL}/api/orders/getById`;
 export const CREATE_ORDER: string = `${BASE_URL}/api/orders/create`;
 
 // Auth / Identity
-export const AUTH_LOGIN: string = `${BASE_URL}/api/auth/login`;
-export const AUTH_REGISTER: string = `${BASE_URL}/api/auth/register`;
+export const AUTH_LOGIN: string = `${BASE_URL}/api/identity/auth/login`;
+export const AUTH_REGISTER: string = `${BASE_URL}/api/identity/auth/register`;
+export const AUTH_REFRESH_TOKEN: string = `${BASE_URL}/api/identity/auth/refreshToken`;
+export const AUTH_LOGOUT = (userId: number | string): string =>
+  `${BASE_URL}/api/identity/auth/logout/${userId}`;

@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-import { ProductGrid, ProductGridSkeleton } from "@/components/shop/ProductGrid/ProductGrid";
+import {
+  ProductGrid,
+  ProductGridSkeleton,
+} from "@/components/shop/ProductGrid/ProductGrid";
 import nextApiClient from "@/util/nextApiClient";
 import { NEXT_API_URLS } from "@/constants/nextApi";
 
@@ -20,51 +23,89 @@ interface HomeProductsFeedProps {
   initialProducts: FeedProduct[];
 }
 
-// Initial load = 8 products = 2 pages of 4 → scroll starts at page 3
-const SCROLL_START_PAGE = 3;
+const INITIAL_PAGE_SIZE = 8;
 const SCROLL_PAGE_SIZE = 4;
-const MAX_EXTRA_LOADS = 3;
 
-export const HomeProductsFeed = ({ initialProducts }: HomeProductsFeedProps) => {
+interface HomeFeedApiProduct {
+  name: string;
+  slug: string;
+  price: number;
+  coverImageUrl: string | null;
+  imageUrls: string[];
+  categoryName: string;
+  brandName: string;
+  rating?: { average?: number } | number;
+}
+
+interface HomeFeedApiResponse {
+  data?: {
+    featuredProducts?: HomeFeedApiProduct[];
+    totalPages?: number;
+  };
+}
+
+export const HomeProductsFeed = ({
+  initialProducts,
+}: HomeProductsFeedProps) => {
   const [products, setProducts] = useState<FeedProduct[]>(initialProducts);
-  const [page, setPage] = useState(SCROLL_START_PAGE);
-  const [loadCount, setLoadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  // page 1 was already fetched server-side with pageSize 8; scroll starts from page 2
+  const [hasMore, setHasMore] = useState(true);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef(2);
+  const loadingRef = useRef(false);
 
   const loadMore = useCallback(async () => {
-    if (loading || loadCount >= MAX_EXTRA_LOADS) return;
+    if (loadingRef.current) return;
+
+    loadingRef.current = true;
     setLoading(true);
+
     try {
-      const res = await nextApiClient.get(NEXT_API_URLS.PRODUCTS, {
-        params: { isFeatured: true, pageSize: SCROLL_PAGE_SIZE, page },
-      });
-      const results: any[] = res.data?.data?.results ?? [];
-      if (results.length === 0) {
-        setLoadCount(MAX_EXTRA_LOADS);
-        return;
+      const requestedPage = pageRef.current;
+      const res = await nextApiClient.get<HomeFeedApiResponse>(
+        NEXT_API_URLS.HOME,
+        {
+          params: {
+            page: requestedPage,
+            pageSize: SCROLL_PAGE_SIZE,
+            OrderBy: 0,
+            orderType: 0,
+          },
+        },
+      );
+      const featuredProducts = res.data?.data?.featuredProducts ?? [];
+      const totalPages = res.data?.data?.totalPages ?? 1;
+
+      pageRef.current += 1;
+
+      if (featuredProducts.length > 0) {
+        const incoming: FeedProduct[] = featuredProducts.map((p) => ({
+          name: p.name,
+          slug: p.slug,
+          price: p.price,
+          imageUrl: p.coverImageUrl ?? p.imageUrls?.[0] ?? null,
+          categoryName: p.categoryName,
+          brandName: p.brandName,
+          rating:
+            typeof p.rating === "number" ? p.rating : p.rating?.average,
+        }));
+        setProducts((prev) => {
+          const seen = new Set(prev.map((q) => q.slug));
+          return [...prev, ...incoming.filter((q) => !seen.has(q.slug))];
+        });
       }
-      const incoming: FeedProduct[] = results.map((p) => ({
-        name: p.name,
-        slug: p.slug,
-        price: p.price,
-        imageUrl: p.imageUrls?.[0] ?? null,
-        categoryName: p.categoryName,
-        brandName: p.brandName,
-        rating: typeof p.rating === "number" ? p.rating : p.rating?.average,
-      }));
-      setProducts((prev) => {
-        const seen = new Set(prev.map((p) => p.slug));
-        return [...prev, ...incoming.filter((p) => !seen.has(p.slug))];
-      });
-      setPage((p) => p + 1);
-      setLoadCount((c) => c + 1);
+
+      if (featuredProducts.length === 0 || requestedPage >= totalPages) {
+        setHasMore(false);
+      }
     } catch {
-      // silently ignore fetch errors
+      setHasMore(false);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [loading, loadCount, page]);
+  }, []);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -73,19 +114,17 @@ export const HomeProductsFeed = ({ initialProducts }: HomeProductsFeedProps) => 
       ([entry]) => {
         if (entry.isIntersecting) loadMore();
       },
-      { rootMargin: "300px" },
+      { rootMargin: "200px" },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [loadMore]);
 
-  const done = loadCount >= MAX_EXTRA_LOADS;
-
   return (
     <>
       <ProductGrid products={products} priorityCount={4} />
       {loading && <ProductGridSkeleton count={SCROLL_PAGE_SIZE} />}
-      {!done && <div ref={sentinelRef} style={{ height: 1 }} />}
+      {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
     </>
   );
 };

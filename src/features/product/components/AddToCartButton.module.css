@@ -2,30 +2,41 @@
   display: flex;
   gap: var(--space-3);
   align-items: stretch;
+  flex-wrap: wrap;
 }
+
+/* ─── Quantity Control ───────────────────────────────────── */
 
 .quantityControl {
   display: flex;
   align-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
   overflow: hidden;
+  background: var(--color-bg);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.quantityControl:hover {
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.08);
 }
 
 .quantityButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 44px;
+  width: 42px;
+  height: 48px;
   font-size: var(--text-lg);
   font-weight: 600;
   color: var(--color-text);
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
 .quantityButton:hover:not(:disabled) {
-  background: var(--color-bg-secondary);
+  background: var(--color-primary-50);
+  color: var(--color-primary);
 }
 
 .quantityButton:disabled {
@@ -37,36 +48,173 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
+  min-width: 36px;
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ─── CTA Button Group ──────────────────────────────────── */
+
+.ctaGroup {
+  display: flex;
+  flex: 1;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .addButton {
   flex: 1;
-  height: 44px;
-  padding: 0 var(--space-8);
-  background: var(--color-primary);
+  height: 48px;
+  padding: 0 var(--space-6);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: white;
   font-size: var(--text-base);
   font-weight: 600;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   transition:
-    background-color var(--transition-fast),
-    transform var(--transition-fast);
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
   white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
 }
 
 .addButton:hover:not(:disabled) {
-  background: var(--color-primary-dark);
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
+}
+
+.addButton:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
 }
 
 .addButton:disabled {
   background: var(--color-text-muted);
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .addButton.added {
-  background: var(--color-success);
+  background: linear-gradient(135deg, var(--color-success), #16a34a);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+}
+
+/* ─── Buy Now Button ─────────────────────────────────────── */
+
+.buyNowButton {
+  height: 48px;
+  padding: 0 var(--space-5);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--text-base);
+  font-weight: 600;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  white-space: nowrap;
+}
+
+.buyNowButton:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+}
+
+.buyNowButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.buyNowButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Wishlist Button ────────────────────────────────────── */
+
+.wishlistButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.wishlistButton:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.05);
+  transform: scale(1.05);
+}
+
+.wishlisted {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.08);
+  animation: heartPulse 400ms ease;
+}
+
+@keyframes heartPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  .wrapper {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .quantityControl {
+    align-self: flex-start;
+  }
+
+  .ctaGroup {
+    width: 100%;
+  }
+
+  .wishlistButton {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+  }
 }

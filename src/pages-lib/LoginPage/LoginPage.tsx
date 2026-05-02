@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { Box, Button, Container, Heading, Stack, Text } from "@chakra-ui/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +14,8 @@ import { loginSchema, type LoginSchemaType } from "@/validations/loginSchema";
 
 export const LoginPage = () => {
   const router = useRouter();
+  const params = useParams();
+  const lang = (params?.lang as string) || "tr";
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +44,7 @@ export const LoginPage = () => {
       if (result?.error) {
         setError(t("auth.invalidCredentials"));
       } else {
-        router.push("/");
+        router.push(`/${lang}`);
         router.refresh();
       }
     } catch {
@@ -54,7 +57,18 @@ export const LoginPage = () => {
   return (
     <Container maxW="sm" py="80px">
       <Stack gap="32px" align="center">
-        <Heading>{t("auth.login")}</Heading>
+        <Stack gap="8px" align="center">
+          <Heading>{t("auth.login")}</Heading>
+          <Text color="fg.muted" fontSize="sm">
+            {t("auth.noAccount")}{" "}
+            <Link
+              href={`/${lang}/register`}
+              style={{ color: "var(--chakra-colors-teal-600)", fontWeight: 600 }}
+            >
+              {t("auth.register")}
+            </Link>
+          </Text>
+        </Stack>
         <Box
           w="full"
           bg="white"
