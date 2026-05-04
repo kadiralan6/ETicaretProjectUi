@@ -53,7 +53,16 @@
     "hasAccount": "Already have an account?",
     "testAccounts": "Test Accounts:",
     "adminAccount": "Admin: admin@test.com / 123456",
-    "userAccount": "User: user@test.com / 123456"
+    "userAccount": "User: user@test.com / 123456",
+    "welcomeBack": "Welcome Back",
+    "loginSubtitle": "Sign in to your account to continue shopping",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "orContinueWith": "or",
+    "secureLogin": "Secure Login",
+    "secureLoginDesc": "Your data is protected with 256-bit SSL encryption",
+    "brandSlogan": "Your New Shopping Destination",
+    "brandDesc": "Discover your shopping experience with thousands of products, great prices, and fast delivery."
   },
   "nav": {
     "home": "Home",

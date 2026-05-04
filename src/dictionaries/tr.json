@@ -53,7 +53,16 @@
     "hasAccount": "Zaten hesabın var mı?",
     "testAccounts": "Test Hesapları:",
     "adminAccount": "Admin: admin@test.com / 123456",
-    "userAccount": "User: user@test.com / 123456"
+    "userAccount": "User: user@test.com / 123456",
+    "welcomeBack": "Tekrar Hoş Geldiniz",
+    "loginSubtitle": "Hesabınıza giriş yaparak alışverişe devam edin",
+    "rememberMe": "Beni hatırla",
+    "forgotPassword": "Şifremi unuttum",
+    "orContinueWith": "veya",
+    "secureLogin": "Güvenli Giriş",
+    "secureLoginDesc": "Bilgileriniz 256-bit SSL ile korunmaktadır",
+    "brandSlogan": "Alışverişin Yeni Adresi",
+    "brandDesc": "Binlerce ürün, uygun fiyatlar ve hızlı teslimat ile alışveriş deneyiminizi keşfedin."
   },
   "nav": {
     "home": "Anasayfa",

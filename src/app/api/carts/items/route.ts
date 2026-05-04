@@ -13,17 +13,32 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
+   
     const body = await request.json();
-    const response = await httpClient.post(`${CART_ADD_ITEM}/${userId}`, body);
+    const payload = {
+      productId: Number(body.productId),
+      quantity: Number(body.quantity),
+      userId: Number(userId),
+    };
+    console.log("[addItem] userId:", userId, "token:", (session as any)?.accessToken?.token?.slice(0, 30) + "...");
+    const response = await httpClient.post(CART_ADD_ITEM, payload);
     // Unwrap backend envelope: { isSuccess, statusCode, data: ICart }
     return NextResponse.json(response.data?.data ?? response.data, {
       status: 200,
     });
   } catch (error: any) {
-    const errorData = error.response?.data || {};
-    return NextResponse.json(errorData, {
-      status: error.response?.status || 500,
-    });
+    // Backend ApiResponse envelope: { isSuccess, message, statusCode, errors }
+    const backendData = error.response?.data;
+    const status = error.response?.status || 500;
+    return NextResponse.json(
+      {
+        message:
+          backendData?.message ||
+          backendData?.errors?.[0] ||
+          "Sunucu hatası oluştu.",
+        statusCode: status,
+      },
+      { status },
+    );
   }
 }

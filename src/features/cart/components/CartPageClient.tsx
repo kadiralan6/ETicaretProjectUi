@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/features/cart/store";
@@ -18,6 +19,8 @@ function fetchCart(): Promise<ICart> {
 }
 
 export const CartPageClient = () => {
+  const params = useParams();
+  const lang = params?.lang ?? "tr";
   const { status } = useSession();
   const queryClient = useQueryClient();
   const isAuthenticated = status === "authenticated";
@@ -342,6 +345,7 @@ export const CartPageClient = () => {
               isApplyingCoupon={false}
               isRemovingCoupon={false}
               isAuthenticated={false}
+              lang={lang}
             />
           </aside>
         )}
@@ -575,6 +579,7 @@ export const CartPageClient = () => {
             isApplyingCoupon={applyCouponMutation.isPending}
             isRemovingCoupon={removeCouponMutation.isPending}
             isAuthenticated={true}
+            lang={lang}
           />
         </aside>
       )}
@@ -626,6 +631,7 @@ interface OrderSummaryProps {
   isApplyingCoupon: boolean;
   isRemovingCoupon: boolean;
   isAuthenticated: boolean;
+  lang: string | string[];
 }
 
 function OrderSummary({
@@ -641,6 +647,7 @@ function OrderSummary({
   isApplyingCoupon,
   isRemovingCoupon,
   isAuthenticated,
+  lang,
 }: OrderSummaryProps) {
   return (
     <div className={styles.summaryCard}>
@@ -741,7 +748,7 @@ function OrderSummary({
         </div>
       )}
 
-      <Link href="/checkout" className={styles.checkoutBtn}>
+      <Link href={`/${lang}/checkout`} className={styles.checkoutBtn}>
         <svg
           width="18"
           height="18"
