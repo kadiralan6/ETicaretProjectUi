@@ -8,19 +8,18 @@ interface RouteParams {
   params: Promise<{ cartId: string }>;
 }
 
-// DELETE /api/carts/coupon/{cartId} → DELETE /api/basket/carts/removeCoupon/{userId}/{cartId}
+// DELETE /api/carts/coupon/{cartId} → DELETE /api/basket/CartItems/removeCoupon/{cartId}
 export async function DELETE(_request: NextRequest, { params }: RouteParams) {
   const { cartId } = await params;
   try {
-    const session = (await getServerSession(authOptions)) as any;
-    const userId = session?.user?.id;
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
+    if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const response = await httpClient.delete(
-      `${CART_REMOVE_COUPON}/${userId}/${cartId}`,
+      `${CART_REMOVE_COUPON}/${cartId}`,
     );
     return NextResponse.json(response.data?.data ?? response.data);
   } catch (error: any) {

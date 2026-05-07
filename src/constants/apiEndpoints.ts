@@ -57,3 +57,11 @@ export const AUTH_REGISTER: string = `${BASE_URL}/api/identity/auth/register`;
 export const AUTH_REFRESH_TOKEN: string = `${BASE_URL}/api/identity/auth/refreshToken`;
 export const AUTH_LOGOUT = (userId: number | string): string =>
   `${BASE_URL}/api/identity/auth/logout/${userId}`;
+
+// Identity - Users (Profile)
+export const USER_GET_BY_ID = (id: number | string): string =>
+  `${BASE_URL}/api/identity/users/getById/${id}`;
+export const USER_UPDATE = (id: number | string): string =>
+  `${BASE_URL}/api/identity/users/update/${id}`;
+export const USER_CHANGE_PASSWORD = (id: number | string): string =>
+  `${BASE_URL}/api/identity/users/changePassword/${id}`;

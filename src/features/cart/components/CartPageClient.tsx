@@ -241,44 +241,53 @@ export const CartPageClient = () => {
                       ₺ / adet
                     </p>
                     <div className={styles.itemActions}>
-                      <div className={styles.qtyControl}>
-                        <button
-                          className={styles.qtyBtn}
-                          onClick={() =>
-                            guestUpdateQty(item.productId, item.quantity - 1)
-                          }
-                          aria-label="Azalt"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
+                      <div>
+                        <div className={styles.qtyControl}>
+                          <button
+                            className={styles.qtyBtn}
+                            onClick={() =>
+                              guestUpdateQty(item.productId, item.quantity - 1)
+                            }
+                            disabled={item.quantity <= 1}
+                            aria-label="Azalt"
                           >
-                            <path d="M5 12h14" />
-                          </svg>
-                        </button>
-                        <span className={styles.qtyValue}>{item.quantity}</span>
-                        <button
-                          className={styles.qtyBtn}
-                          onClick={() =>
-                            guestUpdateQty(item.productId, item.quantity + 1)
-                          }
-                          aria-label="Artır"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                            >
+                              <path d="M5 12h14" />
+                            </svg>
+                          </button>
+                          <span className={styles.qtyValue}>{item.quantity}</span>
+                          <button
+                            className={styles.qtyBtn}
+                            onClick={() =>
+                              guestUpdateQty(item.productId, item.quantity + 1)
+                            }
+                            disabled={item.quantity >= 5}
+                            aria-label="Artır"
                           >
-                            <path d="M12 5v14M5 12h14" />
-                          </svg>
-                        </button>
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                            >
+                              <path d="M12 5v14M5 12h14" />
+                            </svg>
+                          </button>
+                        </div>
+                        {item.quantity >= 5 && (
+                          <p className={styles.qtyMaxWarning}>
+                            En fazla 5 adet eklenebilir
+                          </p>
+                        )}
                       </div>
 
                       <span className={styles.itemTotal}>
@@ -312,7 +321,7 @@ export const CartPageClient = () => {
           )}
 
           {!isEmpty && (
-            <Link href="/products" className={styles.continueShoppingLink}>
+            <Link href={`/${lang}/search`} className={styles.continueShoppingLink}>
               <svg
                 width="16"
                 height="16"
@@ -457,54 +466,63 @@ export const CartPageClient = () => {
                     ₺ / adet
                   </p>
                   <div className={styles.itemActions}>
-                    <div className={styles.qtyControl}>
-                      <button
-                        className={styles.qtyBtn}
-                        onClick={() =>
-                          updateItemMutation.mutate({
-                            cartItemId: item.id,
-                            quantity: item.quantity - 1,
-                          })
-                        }
-                        disabled={
-                          item.quantity <= 1 || updateItemMutation.isPending
-                        }
-                        aria-label="Azalt"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
+                    <div>
+                      <div className={styles.qtyControl}>
+                        <button
+                          className={styles.qtyBtn}
+                          onClick={() =>
+                            updateItemMutation.mutate({
+                              cartItemId: item.id,
+                              quantity: item.quantity - 1,
+                            })
+                          }
+                          disabled={
+                            item.quantity <= 1 || updateItemMutation.isPending
+                          }
+                          aria-label="Azalt"
                         >
-                          <path d="M5 12h14" />
-                        </svg>
-                      </button>
-                      <span className={styles.qtyValue}>{item.quantity}</span>
-                      <button
-                        className={styles.qtyBtn}
-                        onClick={() =>
-                          updateItemMutation.mutate({
-                            cartItemId: item.id,
-                            quantity: item.quantity + 1,
-                          })
-                        }
-                        disabled={updateItemMutation.isPending}
-                        aria-label="Artır"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path d="M5 12h14" />
+                          </svg>
+                        </button>
+                        <span className={styles.qtyValue}>{item.quantity}</span>
+                        <button
+                          className={styles.qtyBtn}
+                          onClick={() =>
+                            updateItemMutation.mutate({
+                              cartItemId: item.id,
+                              quantity: item.quantity + 1,
+                            })
+                          }
+                          disabled={
+                            item.quantity >= 5 || updateItemMutation.isPending
+                          }
+                          aria-label="Artır"
                         >
-                          <path d="M12 5v14M5 12h14" />
-                        </svg>
-                      </button>
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path d="M12 5v14M5 12h14" />
+                          </svg>
+                        </button>
+                      </div>
+                      {item.quantity >= 5 && (
+                        <p className={styles.qtyMaxWarning}>
+                          En fazla 5 adet eklenebilir
+                        </p>
+                      )}
                     </div>
 
                     <span className={styles.itemTotal}>
@@ -539,7 +557,7 @@ export const CartPageClient = () => {
         )}
 
         {!isEmpty && (
-          <Link href="/products" className={styles.continueShoppingLink}>
+          <Link href={`/${lang}/search`} className={styles.continueShoppingLink}>
             <svg
               width="16"
               height="16"

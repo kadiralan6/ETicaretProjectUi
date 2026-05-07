@@ -227,6 +227,13 @@ a.itemName:hover {
   color: var(--color-text);
 }
 
+.qtyMaxWarning {
+  font-size: 11px;
+  color: var(--color-warning, #d97706);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
 /* ─── Item Total & Remove ─────────────────────────────────── */
 
 .itemTotal {

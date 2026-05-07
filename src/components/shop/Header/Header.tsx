@@ -48,9 +48,10 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
 
   // Guest: use local Zustand store
   const guestItemCount = useCartStore((s) => s.getTotalItems());
-
+  console.log("Cart count (API):", cartCount);
+  console.log("Cart count (Guest store):", guestItemCount);
   const totalItems = isAuthenticated
-    ? (cartCount?.totalQuantity ?? 0)
+    ? (cartCount?.uniqueItemCount ?? 0)
     : guestItemCount;
 
   const handleSearch = (e: FormEvent) => {

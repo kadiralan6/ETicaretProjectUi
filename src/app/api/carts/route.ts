@@ -7,14 +7,8 @@ import { CART_GET_BY_USER_ID } from "@/constants/apiEndpoints";
 // GET /api/carts → GET /api/basket/CartItems/getByUserId/{userId}
 export async function GET() {
   try {
-    const session = (await getServerSession(authOptions)) as any;
-    const userId = session?.user?.id;
 
-    if (!userId) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const response = await httpClient.get(`${CART_GET_BY_USER_ID}/${userId}`);
+    const response = await httpClient.get(`${CART_GET_BY_USER_ID}`);
     // Response: { isSuccess, data: CartItem[] }
     const rawItems: any[] = response.data?.data ?? [];
 
@@ -37,7 +31,6 @@ export async function GET() {
 
     return NextResponse.json({
       id: 0,
-      userId: rawItems[0]?.userId ?? Number(userId),
       couponId: rawItems[0]?.couponId ?? null,
       couponCode: null,
       subtotal,

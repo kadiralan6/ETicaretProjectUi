@@ -40,4 +40,8 @@ export const NEXT_API_URLS = {
   // Orders
   ORDERS: "/orders",
   ORDER_BY_ID: (id: string) => `/orders/${id}`,
+
+  // Profile
+  PROFILE: "/profile",
+  PROFILE_PASSWORD: "/profile/password",
 } as const;

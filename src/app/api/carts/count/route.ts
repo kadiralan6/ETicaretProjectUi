@@ -14,7 +14,7 @@ export async function GET() {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await httpClient.get(`${CART_GET_ITEM_COUNT}/${userId}`);
+    const response = await httpClient.get(`${CART_GET_ITEM_COUNT}`);
     // Unwrap backend envelope: { isSuccess, statusCode, data: ICartItemCount }
     return NextResponse.json(response.data?.data ?? response.data);
   } catch (error: any) {
