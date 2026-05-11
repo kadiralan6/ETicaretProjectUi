@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCartStore } from "@/features/cart/store";
 import nextApiClient from "@/util/nextApiClient";
 import { NEXT_API_URLS } from "@/constants/nextApi";
 import { LoginPromptModal } from "./LoginPromptModal";
@@ -25,9 +25,10 @@ export function AddToCartButton({
   product,
   disabled = false,
 }: AddToCartButtonProps) {
+  const router = useRouter();
+  const { lang } = useParams<{ lang: string }>();
   const { status } = useSession();
   const queryClient = useQueryClient();
-  const addGuestItem = useCartStore((s) => s.addItem);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
@@ -81,14 +82,18 @@ export function AddToCartButton({
     addItemMutation.mutate();
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (isSessionLoading) return;
     if (!isAuthenticated) {
       setShowLoginModal(true);
       return;
     }
-    addGuestItem({ ...product, quantity });
-    addItemMutation.mutate();
+    try {
+      await addItemMutation.mutateAsync();
+      router.push(`/${lang}/cart`);
+    } catch {
+      // error handled by onError
+    }
   };
 
   const toggleWishlist = () => {

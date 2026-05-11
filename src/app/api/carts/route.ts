@@ -30,7 +30,7 @@ export async function GET() {
     const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
 
     return NextResponse.json({
-      id: 0,
+      id: rawItems[0]?.cartId ?? 0,
       couponId: rawItems[0]?.couponId ?? null,
       couponCode: null,
       subtotal,

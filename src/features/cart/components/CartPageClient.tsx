@@ -47,6 +47,7 @@ export const CartPageClient = () => {
   // Coupon state
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
 
   // ─── Mutations ───────────────────────────────────────────────
   const invalidateCart = () =>
@@ -75,17 +76,32 @@ export const CartPageClient = () => {
   });
 
   const applyCouponMutation = useMutation({
-    mutationFn: ({ cartId, couponCode }: { cartId: number; couponCode: string }) =>
+    mutationFn: (couponCode: string) =>
       nextApiClient
-        .post(NEXT_API_URLS.CART_COUPON, { cartId, couponCode })
+        .post(NEXT_API_URLS.CART_COUPON, { couponCode })
         .then((r) => r.data),
     onSuccess: () => {
       setCouponInput("");
       setCouponError("");
+      setCouponSuccess("Kupon uygulandı!");
       invalidateCart();
     },
-    onError: () => {
-      setCouponError("Geçersiz veya kullanılamaz kupon kodu.");
+    onError: (err: any) => {
+      setCouponSuccess("");
+      const status = err?.response?.status;
+      const errors = err?.response?.data?.errors;
+      const message = err?.response?.data?.message;
+      if (status === 404) {
+        setCouponError("Sepetinizde ürün yok.");
+      } else if (status === 400) {
+        setCouponError(
+          message ?? "Oturumunuz geçersiz, lütfen tekrar giriş yapın.",
+        );
+      } else if (status === 422 && errors?.[0]) {
+        setCouponError(errors[0]);
+      } else {
+        setCouponError("Kupon uygulanamadı, lütfen tekrar deneyin.");
+      }
     },
   });
 
@@ -94,7 +110,11 @@ export const CartPageClient = () => {
       nextApiClient
         .delete(NEXT_API_URLS.CART_COUPON_REMOVE(cartId))
         .then((r) => r.data),
-    onSuccess: invalidateCart,
+    onSuccess: () => {
+      setCouponError("");
+      setCouponSuccess("Kupon kaldırıldı.");
+      invalidateCart();
+    },
   });
 
   const clearCartMutation = useMutation({
@@ -106,10 +126,8 @@ export const CartPageClient = () => {
   // ─── Handlers ────────────────────────────────────────────────
   const handleApplyCoupon = () => {
     if (!couponInput.trim() || !serverCart) return;
-    applyCouponMutation.mutate({
-      cartId: serverCart.id,
-      couponCode: couponInput.trim().toUpperCase(),
-    });
+    // Doc: kupon kodu case-sensitive — kullanıcının girdiği kasayı koru.
+    applyCouponMutation.mutate(couponInput.trim());
   };
 
   // ─── Loading skeleton ─────────────────────────────────────────
@@ -349,6 +367,7 @@ export const CartPageClient = () => {
               couponInput={couponInput}
               setCouponInput={setCouponInput}
               couponError={couponError}
+              couponSuccess=""
               onApplyCoupon={handleApplyCoupon}
               onRemoveCoupon={() => {}}
               isApplyingCoupon={false}
@@ -592,6 +611,7 @@ export const CartPageClient = () => {
             couponInput={couponInput}
             setCouponInput={setCouponInput}
             couponError={couponError}
+            couponSuccess={couponSuccess}
             onApplyCoupon={handleApplyCoupon}
             onRemoveCoupon={() => removeCouponMutation.mutate(serverCart.id)}
             isApplyingCoupon={applyCouponMutation.isPending}
@@ -644,6 +664,7 @@ interface OrderSummaryProps {
   couponInput: string;
   setCouponInput: (v: string) => void;
   couponError: string;
+  couponSuccess: string;
   onApplyCoupon: () => void;
   onRemoveCoupon: () => void;
   isApplyingCoupon: boolean;
@@ -660,6 +681,7 @@ function OrderSummary({
   couponInput,
   setCouponInput,
   couponError,
+  couponSuccess,
   onApplyCoupon,
   onRemoveCoupon,
   isApplyingCoupon,
@@ -746,7 +768,7 @@ function OrderSummary({
                   className={styles.couponInput}
                   placeholder="Kupon kodu"
                   value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  onChange={(e) => setCouponInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && onApplyCoupon()}
                   maxLength={32}
                 />
@@ -760,6 +782,9 @@ function OrderSummary({
               </div>
               {couponError && (
                 <p className={styles.couponError}>{couponError}</p>
+              )}
+              {couponSuccess && !couponError && (
+                <p className={styles.couponSuccess}>{couponSuccess}</p>
               )}
             </>
           )}

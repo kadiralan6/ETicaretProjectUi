@@ -432,6 +432,12 @@ a.itemName:hover {
   margin: 0;
 }
 
+.couponSuccess {
+  font-size: var(--text-xs);
+  color: var(--color-success, #16a34a);
+  margin: 0;
+}
+
 .appliedCoupon {
   display: flex;
   align-items: center;

@@ -50,6 +50,7 @@ export const CART_CLEAR: string = `${BASE_URL}/api/basket/CartItems/clear`;
 export const GET_ALL_ORDERS: string = `${BASE_URL}/api/orders/getAll`;
 export const GET_ORDER_BY_ID: string = `${BASE_URL}/api/orders/getById`;
 export const CREATE_ORDER: string = `${BASE_URL}/api/orders/create`;
+export const PLACE_ORDER: string = `${BASE_URL}/api/basket/orders/placeOrder`;
 
 // Auth / Identity
 export const AUTH_LOGIN: string = `${BASE_URL}/api/identity/auth/login`;
@@ -65,3 +66,13 @@ export const USER_UPDATE = (id: number | string): string =>
   `${BASE_URL}/api/identity/users/update/${id}`;
 export const USER_CHANGE_PASSWORD = (id: number | string): string =>
   `${BASE_URL}/api/identity/users/changePassword/${id}`;
+
+// Identity - Addresses
+export const ADDRESS_GET_BY_USER: string = `${BASE_URL}/api/identity/addresses/getByUser`;
+export const ADDRESS_GET_BY_ID = (id: number | string): string =>
+  `${BASE_URL}/api/identity/addresses/getById/${id}`;
+export const ADDRESS_CREATE: string = `${BASE_URL}/api/identity/addresses/create`;
+export const ADDRESS_UPDATE = (id: number | string): string =>
+  `${BASE_URL}/api/identity/addresses/update/${id}`;
+export const ADDRESS_DELETE = (id: number | string): string =>
+  `${BASE_URL}/api/identity/addresses/delete/${id}`;

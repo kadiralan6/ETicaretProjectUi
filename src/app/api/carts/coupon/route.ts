@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const response = await httpClient.post(CART_APPLY_COUPON, body);
+    // Backend JWT'den userId alıp sepeti buluyor; sadece couponCode gönderiyoruz.
+    const response = await httpClient.post(CART_APPLY_COUPON, {
+      couponCode: body.couponCode,
+    });
     return NextResponse.json(response.data?.data ?? response.data);
   } catch (error: any) {
     const errorData = error.response?.data || {};

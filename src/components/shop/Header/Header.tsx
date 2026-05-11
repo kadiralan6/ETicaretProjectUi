@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useState, FormEvent, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
@@ -18,6 +18,7 @@ export interface CategoryLink {
 
 export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
   const router = useRouter();
+  const { lang } = useParams<{ lang: string }>();
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
@@ -57,7 +58,7 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/${lang}/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -67,7 +68,7 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
 
         {/* Left: Logo & Navigation */}
         <div className={styles.leftSection}>
-          <Link href="/" className={styles.logoGroup}>
+          <Link href={`/${lang}`} className={styles.logoGroup}>
             <div className={styles.logoIcon}>
               <span className={styles.logoInitial}>N</span>
             </div>
@@ -75,9 +76,13 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
           </Link>
 
           <nav className={styles.desktopNav}>
-            <Link href="/products" className={styles.navLink}>Ürünler</Link>
+            <Link href={`/${lang}/search`} className={styles.navLink}>Ürünler</Link>
             {categories.map((cat) => (
-              <Link key={cat.slug} href={`/category/${cat.slug}`} className={styles.navLink}>
+              <Link
+                key={cat.slug}
+                href={`/${lang}/search?category=${encodeURIComponent(cat.name)}`}
+                className={styles.navLink}
+              >
                 {cat.name}
               </Link>
             ))}
@@ -120,7 +125,7 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
             aria-label="Arama"
             onClick={() =>
               router.push(
-                `/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""}`,
+                `/${lang}/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""}`,
               )
             }
           >

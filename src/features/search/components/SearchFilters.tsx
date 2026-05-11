@@ -35,8 +35,12 @@ export function SearchFilters({
 
   // Sync state when URL changes
   useEffect(() => {
-    setMinPrice(currentMinPrice);
-    setMaxPrice(currentMaxPrice);
+    const fmt = (v: string) => {
+      const digits = v.replace(/\D/g, "");
+      return digits ? Number(digits).toLocaleString("tr-TR") : "";
+    };
+    setMinPrice(fmt(currentMinPrice));
+    setMaxPrice(fmt(currentMaxPrice));
   }, [currentMinPrice, currentMaxPrice]);
 
   const updateParam = (key: string, value: string | undefined) => {
@@ -50,17 +54,20 @@ export function SearchFilters({
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handlePriceChange = (key: "minPrice" | "maxPrice", value: string) => {
-    if (key === "minPrice") setMinPrice(value);
-    else setMaxPrice(value);
+  const handlePriceChange = (key: "minPrice" | "maxPrice", rawValue: string) => {
+    const digits = rawValue.replace(/\D/g, "");
+    const formatted = digits ? Number(digits).toLocaleString("tr-TR") : "";
+
+    if (key === "minPrice") setMinPrice(formatted);
+    else setMaxPrice(formatted);
 
     if (priceDebounceRef.current) clearTimeout(priceDebounceRef.current);
     priceDebounceRef.current = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
-      if (value === "") {
+      if (digits === "") {
         params.delete(key);
       } else {
-        params.set(key, value);
+        params.set(key, digits);
       }
       params.delete("page");
       router.push(`${pathname}?${params.toString()}`);
@@ -137,23 +144,42 @@ export function SearchFilters({
           )}
         </div>
         <div className={styles.priceRow}>
-          <input
-            type="number"
-            className={styles.priceInput}
-            placeholder="Min ₺"
-            value={minPrice}
-            min={0}
-            onChange={(e) => handlePriceChange("minPrice", e.target.value)}
-          />
-          <span className={styles.priceDash}>—</span>
-          <input
-            type="number"
-            className={styles.priceInput}
-            placeholder="Max ₺"
-            value={maxPrice}
-            min={0}
-            onChange={(e) => handlePriceChange("maxPrice", e.target.value)}
-          />
+          <div className={styles.priceField}>
+            <label className={styles.priceLabel} htmlFor="min-price">
+              En az
+            </label>
+            <div className={styles.priceInputWrap}>
+              <input
+                id="min-price"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                className={styles.priceInput}
+                placeholder="0"
+                value={minPrice}
+                onChange={(e) => handlePriceChange("minPrice", e.target.value)}
+              />
+              <span className={styles.priceCurrency}>₺</span>
+            </div>
+          </div>
+          <div className={styles.priceField}>
+            <label className={styles.priceLabel} htmlFor="max-price">
+              En fazla
+            </label>
+            <div className={styles.priceInputWrap}>
+              <input
+                id="max-price"
+                type="text"
+                inputMode="numeric"
+                autoComplete="off"
+                className={styles.priceInput}
+                placeholder="0"
+                value={maxPrice}
+                onChange={(e) => handlePriceChange("maxPrice", e.target.value)}
+              />
+              <span className={styles.priceCurrency}>₺</span>
+            </div>
+          </div>
         </div>
       </div>
 

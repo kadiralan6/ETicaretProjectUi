@@ -37,6 +37,14 @@ export type {
   IOrder,
   IOrderItem,
   IOrderStatus,
+  IOrderShippingAddress,
+  ICreateOrderItem,
+  ICreateOrderCardInfo,
   ICreateOrderRequest,
 } from "./IOrder";
 export type { IUser, ILoginRequest, IRegisterRequest, ILoginResponse } from "./IUser";
+export type {
+  IAddress,
+  ICreateAddressRequest,
+  IUpdateAddressRequest,
+} from "./IAddress";
