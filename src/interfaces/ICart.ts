@@ -46,6 +46,5 @@ export interface IUpdateCartItemRequest {
 }
 
 export interface IApplyCouponRequest {
-  cartId: number;
   couponCode: string;
 }

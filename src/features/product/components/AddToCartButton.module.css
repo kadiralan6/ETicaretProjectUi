@@ -192,6 +192,44 @@
   }
 }
 
+/* ─── Toast Notifications ───────────────────────────────── */
+
+.toast,
+.toastError {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+  animation: slideIn 0.25s ease;
+}
+
+.toast {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  color: #15803d;
+}
+
+.toastError {
+  background: #fff5f5;
+  border: 1.5px solid #fca5a5;
+  color: #b91c1c;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ─── Responsive ─────────────────────────────────────────── */
 
 @media (max-width: 480px) {

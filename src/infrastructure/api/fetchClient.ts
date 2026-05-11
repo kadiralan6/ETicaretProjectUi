@@ -177,12 +177,21 @@ export async function fetchProducts(params?: {
         stockQuantity: number;
         isActive: boolean;
         isFeatured: boolean;
+        categoryId: number;
         categoryName: string;
-        categorySlug: string;
-        brandName: string;
-        brandSlug: string;
-        imageUrls: string[];
-        rating: number;
+        categorySlug?: string;
+        brandId?: number;
+        brandName?: string;
+        brandSlug?: string;
+        description: string;
+        rating?: number;
+        images: Array<{
+          id: number;
+          url: string;
+          altText: string | null;
+          isCover: boolean;
+          productId: number;
+        }>;
       }>;
       currentPage: number;
       pageCount: number;
@@ -272,6 +281,80 @@ export async function fetchCategoryBySlug(slug: string) {
 
 export async function fetchFeaturedProducts() {
   return fetchProducts({ isFeatured: true, pageSize: 8 });
+}
+
+export async function fetchBrands() {
+  return fetchApi<{
+    isSuccess: boolean;
+    data: {
+      results: Array<{
+        id: number;
+        name: string;
+        slug: string;
+      }>;
+      currentPage: number;
+      pageCount: number;
+      pageSize: number;
+      rowCount: number;
+    };
+  }>("/api/catalog/Brands/getAllFilter", {
+    revalidate: 120,
+    tags: ["brands"],
+  });
+}
+
+export interface SearchFilterParams {
+  query?: string;
+  category?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
+  sortBy?: string;
+  sortOrder?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export async function fetchSearchFilter(params: SearchFilterParams) {
+  const sp = new URLSearchParams();
+  if (params.query) sp.set("query", params.query);
+  if (params.category) sp.set("category", params.category);
+  if (params.brand) sp.set("brand", params.brand);
+  if (params.minPrice !== undefined) sp.set("minPrice", String(params.minPrice));
+  if (params.maxPrice !== undefined) sp.set("maxPrice", String(params.maxPrice));
+  if (params.inStock !== undefined) sp.set("inStock", String(params.inStock));
+  if (params.sortBy) sp.set("sortBy", params.sortBy);
+  if (params.sortOrder) sp.set("sortOrder", params.sortOrder);
+  if (params.page) sp.set("page", String(params.page));
+  if (params.pageSize) sp.set("pageSize", String(params.pageSize));
+
+  return fetchApi<{
+    isSuccess: boolean;
+    data: {
+      results: Array<{
+        id: number;
+        code: string;
+        name: string;
+        slug: string;
+        price: number;
+        stockQuantity: number;
+        isActive: boolean;
+        isFeatured: boolean;
+        categoryName: string;
+        brandName: string;
+        imageUrls: string[];
+        score: number;
+      }>;
+      currentPage: number;
+      pageSize: number;
+      totalCount: number;
+      pageCount: number;
+    };
+  }>(`/api/search/filter?${sp.toString()}`, {
+    revalidate: false,
+    tags: [],
+  });
 }
 
 export async function fetchSearchResults(

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useRouter, useParams } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCartStore } from "@/features/cart/store";
 import nextApiClient from "@/util/nextApiClient";
 import { NEXT_API_URLS } from "@/constants/nextApi";
 import { LoginPromptModal } from "./LoginPromptModal";
@@ -25,15 +25,18 @@ export function AddToCartButton({
   product,
   disabled = false,
 }: AddToCartButtonProps) {
+  const router = useRouter();
+  const { lang } = useParams<{ lang: string }>();
   const { status } = useSession();
   const queryClient = useQueryClient();
-  const addGuestItem = useCartStore((s) => s.addItem);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const isAuthenticated = status === "authenticated";
+  const isSessionLoading = status === "loading";
 
   // Authenticated: POST to backend via BFF
   const addItemMutation = useMutation({
@@ -41,22 +44,37 @@ export function AddToCartButton({
       nextApiClient
         .post(NEXT_API_URLS.CART_ITEMS, {
           productId: product.productId,
-          productName: product.name,
-          productSlug: product.slug,
-          imageUrl: product.imageUrl,
-          unitPrice: product.price,
           quantity,
         })
         .then((r) => r.data),
     onSuccess: () => {
-      // Refresh the cart badge in Header
+      setErrorMsg(null);
       queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
       setAdded(true);
-      setTimeout(() => setAdded(false), 2000);
+      setTimeout(() => setAdded(false), 3000);
+    },
+    onError: async (error: any) => {
+      const httpStatus = error.response?.status;
+      // Mutation sadece isAuthenticated=true iken çalışır.
+      // Backend 401 → JWT geçersiz/süresi dolmuş → oturumu kapat ve login'e yönlendir.
+      if (httpStatus === 401) {
+        setErrorMsg("Oturum doğrulanamadı. Lütfen tekrar giriş yapın.");
+        setTimeout(() => setErrorMsg(null), 5000);
+        return;
+      }
+      // Backend'den gelen message'ı göster (400, 500 vb.)
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.errors?.[0] ||
+        "Sepete eklenirken bir hata oluştu.";
+      setErrorMsg(msg);
+      setTimeout(() => setErrorMsg(null), 4000);
     },
   });
 
   const handleAdd = () => {
+    if (isSessionLoading) return;
     if (!isAuthenticated) {
       setShowLoginModal(true);
       return;
@@ -64,15 +82,18 @@ export function AddToCartButton({
     addItemMutation.mutate();
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
+    if (isSessionLoading) return;
     if (!isAuthenticated) {
       setShowLoginModal(true);
       return;
     }
-    // Optimistically add via guest store for instant feedback, then sync
-    addGuestItem({ ...product, quantity });
-    addItemMutation.mutate();
-    // TODO: Navigate to checkout
+    try {
+      await addItemMutation.mutateAsync();
+      router.push(`/${lang}/cart`);
+    } catch {
+      // error handled by onError
+    }
   };
 
   const toggleWishlist = () => {
@@ -99,12 +120,51 @@ export function AddToCartButton({
     });
   };
 
-  const isLoading = addItemMutation.isPending;
+  const isLoading = addItemMutation.isPending || isSessionLoading;
 
   return (
     <>
       {showLoginModal && (
         <LoginPromptModal onClose={() => setShowLoginModal(false)} />
+      )}
+
+      {/* Success toast */}
+      {added && (
+        <div className={styles.toast}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>
+            <strong>{product.name}</strong> sepetinize eklendi!
+          </span>
+        </div>
+      )}
+
+      {/* Error toast */}
+      {errorMsg && (
+        <div className={styles.toastError}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span>{errorMsg}</span>
+        </div>
       )}
       <div className={styles.wrapper}>
         {/* Quantity Control */}

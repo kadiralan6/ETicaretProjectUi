@@ -227,6 +227,13 @@ a.itemName:hover {
   color: var(--color-text);
 }
 
+.qtyMaxWarning {
+  font-size: 11px;
+  color: var(--color-warning, #d97706);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
 /* ─── Item Total & Remove ─────────────────────────────────── */
 
 .itemTotal {
@@ -422,6 +429,12 @@ a.itemName:hover {
 .couponError {
   font-size: var(--text-xs);
   color: var(--color-error);
+  margin: 0;
+}
+
+.couponSuccess {
+  font-size: var(--text-xs);
+  color: var(--color-success, #16a34a);
   margin: 0;
 }
 

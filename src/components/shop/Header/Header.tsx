@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, FormEvent } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useState, FormEvent, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/features/cart/store";
 import nextApiClient from "@/util/nextApiClient";
@@ -18,8 +18,21 @@ export interface CategoryLink {
 
 export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
   const router = useRouter();
-  const { status } = useSession();
+  const { lang } = useParams<{ lang: string }>();
+  const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const isAuthenticated = status === "authenticated";
 
@@ -36,15 +49,16 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
 
   // Guest: use local Zustand store
   const guestItemCount = useCartStore((s) => s.getTotalItems());
-
+  console.log("Cart count (API):", cartCount);
+  console.log("Cart count (Guest store):", guestItemCount);
   const totalItems = isAuthenticated
-    ? (cartCount?.totalQuantity ?? 0)
+    ? (cartCount?.uniqueItemCount ?? 0)
     : guestItemCount;
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/${lang}/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -54,7 +68,7 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
 
         {/* Left: Logo & Navigation */}
         <div className={styles.leftSection}>
-          <Link href="/" className={styles.logoGroup}>
+          <Link href={`/${lang}`} className={styles.logoGroup}>
             <div className={styles.logoIcon}>
               <span className={styles.logoInitial}>N</span>
             </div>
@@ -62,9 +76,13 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
           </Link>
 
           <nav className={styles.desktopNav}>
-            <Link href="/products" className={styles.navLink}>Ürünler</Link>
+            <Link href={`/${lang}/search`} className={styles.navLink}>Ürünler</Link>
             {categories.map((cat) => (
-              <Link key={cat.slug} href={`/category/${cat.slug}`} className={styles.navLink}>
+              <Link
+                key={cat.slug}
+                href={`/${lang}/search?category=${encodeURIComponent(cat.name)}`}
+                className={styles.navLink}
+              >
                 {cat.name}
               </Link>
             ))}
@@ -107,7 +125,7 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
             aria-label="Arama"
             onClick={() =>
               router.push(
-                `/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""}`,
+                `/${lang}/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""}`,
               )
             }
           >
@@ -135,18 +153,96 @@ export function Header({ categories = [] }: { categories?: CategoryLink[] }) {
             </svg>
           </Link>
 
-          <Link href="/account" className={styles.iconButton} aria-label="Hesabım">
-            <svg
-              className={styles.icon}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </Link>
+          <div className={styles.accountWrap} ref={accountRef}>
+            {isAuthenticated ? (
+              <>
+                <button
+                  className={`${styles.iconButton} ${accountOpen ? styles.iconButtonActive : ""}`}
+                  aria-label="Hesabım"
+                  onClick={() => setAccountOpen((prev) => !prev)}
+                >
+                  <svg
+                    className={styles.icon}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </button>
+
+                {accountOpen && (
+                  <div className={styles.accountDropdown}>
+                    <div className={styles.dropdownAvatar}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    </div>
+                    <p className={styles.dropdownName}>
+                      {session?.user?.name ?? "Kullanıcı"}
+                    </p>
+                    <p className={styles.dropdownEmail}>
+                      {session?.user?.email ?? ""}
+                    </p>
+                    <div className={styles.dropdownDivider} />
+                    <Link
+                      href="/account"
+                      className={styles.dropdownItem}
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                      Profilim
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className={styles.dropdownItem}
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                        <rect x="9" y="3" width="6" height="4" rx="1" />
+                      </svg>
+                      Siparişlerim
+                    </Link>
+                    <div className={styles.dropdownDivider} />
+                    <button
+                      className={styles.dropdownLogout}
+                      onClick={async () => {
+                        await fetch("/api/auth/logout", { method: "POST" });
+                        signOut({ callbackUrl: "/tr/login" });
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      Çıkış Yap
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <Link href="/tr/login" className={styles.iconButton} aria-label="Giriş Yap">
+                <svg
+                  className={styles.icon}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </Link>
+            )}
+          </div>
 
           <Link
             href="/cart"

@@ -8,21 +8,21 @@ interface RouteParams {
   params: Promise<{ cartItemId: string }>;
 }
 
-// PUT /api/carts/items/{cartItemId} → PUT /api/basket/carts/updateItem/{userId}
+// PUT /api/carts/items/{cartItemId} → PUT /api/basket/CartItems/updateItem
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   const { cartItemId } = await params;
   try {
-    const session = (await getServerSession(authOptions)) as any;
-    const userId = session?.user?.id;
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
+    if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
-    const response = await httpClient.put(`${CART_UPDATE_ITEM}/${userId}`, {
+    const response = await httpClient.put(CART_UPDATE_ITEM, {
       cartItemId: Number(cartItemId),
       quantity: body.quantity,
+      couponId: body.couponId ?? 0,
     });
     return NextResponse.json(response.data?.data ?? response.data);
   } catch (error: any) {
@@ -33,22 +33,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/carts/items/{cartItemId} → DELETE /api/basket/carts/removeItem/{userId}/{cartItemId}
+// DELETE /api/carts/items/{cartItemId} → DELETE /api/basket/CartItems/removeItem/{cartItemId}
 export async function DELETE(
   _request: NextRequest,
   { params }: RouteParams,
 ) {
   const { cartItemId } = await params;
   try {
-    const session = (await getServerSession(authOptions)) as any;
-    const userId = session?.user?.id;
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
+    if (!session) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const response = await httpClient.delete(
-      `${CART_REMOVE_ITEM}/${userId}/${cartItemId}`,
+      `${CART_REMOVE_ITEM}/${cartItemId}`,
     );
     return NextResponse.json(response.data?.data ?? response.data);
   } catch (error: any) {

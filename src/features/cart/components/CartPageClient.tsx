@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/features/cart/store";
@@ -18,6 +19,8 @@ function fetchCart(): Promise<ICart> {
 }
 
 export const CartPageClient = () => {
+  const params = useParams();
+  const lang = params?.lang ?? "tr";
   const { status } = useSession();
   const queryClient = useQueryClient();
   const isAuthenticated = status === "authenticated";
@@ -44,6 +47,7 @@ export const CartPageClient = () => {
   // Coupon state
   const [couponInput, setCouponInput] = useState("");
   const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
 
   // ─── Mutations ───────────────────────────────────────────────
   const invalidateCart = () =>
@@ -72,17 +76,32 @@ export const CartPageClient = () => {
   });
 
   const applyCouponMutation = useMutation({
-    mutationFn: ({ cartId, couponCode }: { cartId: number; couponCode: string }) =>
+    mutationFn: (couponCode: string) =>
       nextApiClient
-        .post(NEXT_API_URLS.CART_COUPON, { cartId, couponCode })
+        .post(NEXT_API_URLS.CART_COUPON, { couponCode })
         .then((r) => r.data),
     onSuccess: () => {
       setCouponInput("");
       setCouponError("");
+      setCouponSuccess("Kupon uygulandı!");
       invalidateCart();
     },
-    onError: () => {
-      setCouponError("Geçersiz veya kullanılamaz kupon kodu.");
+    onError: (err: any) => {
+      setCouponSuccess("");
+      const status = err?.response?.status;
+      const errors = err?.response?.data?.errors;
+      const message = err?.response?.data?.message;
+      if (status === 404) {
+        setCouponError("Sepetinizde ürün yok.");
+      } else if (status === 400) {
+        setCouponError(
+          message ?? "Oturumunuz geçersiz, lütfen tekrar giriş yapın.",
+        );
+      } else if (status === 422 && errors?.[0]) {
+        setCouponError(errors[0]);
+      } else {
+        setCouponError("Kupon uygulanamadı, lütfen tekrar deneyin.");
+      }
     },
   });
 
@@ -91,7 +110,11 @@ export const CartPageClient = () => {
       nextApiClient
         .delete(NEXT_API_URLS.CART_COUPON_REMOVE(cartId))
         .then((r) => r.data),
-    onSuccess: invalidateCart,
+    onSuccess: () => {
+      setCouponError("");
+      setCouponSuccess("Kupon kaldırıldı.");
+      invalidateCart();
+    },
   });
 
   const clearCartMutation = useMutation({
@@ -103,10 +126,8 @@ export const CartPageClient = () => {
   // ─── Handlers ────────────────────────────────────────────────
   const handleApplyCoupon = () => {
     if (!couponInput.trim() || !serverCart) return;
-    applyCouponMutation.mutate({
-      cartId: serverCart.id,
-      couponCode: couponInput.trim().toUpperCase(),
-    });
+    // Doc: kupon kodu case-sensitive — kullanıcının girdiği kasayı koru.
+    applyCouponMutation.mutate(couponInput.trim());
   };
 
   // ─── Loading skeleton ─────────────────────────────────────────
@@ -238,44 +259,53 @@ export const CartPageClient = () => {
                       ₺ / adet
                     </p>
                     <div className={styles.itemActions}>
-                      <div className={styles.qtyControl}>
-                        <button
-                          className={styles.qtyBtn}
-                          onClick={() =>
-                            guestUpdateQty(item.productId, item.quantity - 1)
-                          }
-                          aria-label="Azalt"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
+                      <div>
+                        <div className={styles.qtyControl}>
+                          <button
+                            className={styles.qtyBtn}
+                            onClick={() =>
+                              guestUpdateQty(item.productId, item.quantity - 1)
+                            }
+                            disabled={item.quantity <= 1}
+                            aria-label="Azalt"
                           >
-                            <path d="M5 12h14" />
-                          </svg>
-                        </button>
-                        <span className={styles.qtyValue}>{item.quantity}</span>
-                        <button
-                          className={styles.qtyBtn}
-                          onClick={() =>
-                            guestUpdateQty(item.productId, item.quantity + 1)
-                          }
-                          aria-label="Artır"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                            >
+                              <path d="M5 12h14" />
+                            </svg>
+                          </button>
+                          <span className={styles.qtyValue}>{item.quantity}</span>
+                          <button
+                            className={styles.qtyBtn}
+                            onClick={() =>
+                              guestUpdateQty(item.productId, item.quantity + 1)
+                            }
+                            disabled={item.quantity >= 5}
+                            aria-label="Artır"
                           >
-                            <path d="M12 5v14M5 12h14" />
-                          </svg>
-                        </button>
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                            >
+                              <path d="M12 5v14M5 12h14" />
+                            </svg>
+                          </button>
+                        </div>
+                        {item.quantity >= 5 && (
+                          <p className={styles.qtyMaxWarning}>
+                            En fazla 5 adet eklenebilir
+                          </p>
+                        )}
                       </div>
 
                       <span className={styles.itemTotal}>
@@ -309,7 +339,7 @@ export const CartPageClient = () => {
           )}
 
           {!isEmpty && (
-            <Link href="/products" className={styles.continueShoppingLink}>
+            <Link href={`/${lang}/search`} className={styles.continueShoppingLink}>
               <svg
                 width="16"
                 height="16"
@@ -337,11 +367,13 @@ export const CartPageClient = () => {
               couponInput={couponInput}
               setCouponInput={setCouponInput}
               couponError={couponError}
+              couponSuccess=""
               onApplyCoupon={handleApplyCoupon}
               onRemoveCoupon={() => {}}
               isApplyingCoupon={false}
               isRemovingCoupon={false}
               isAuthenticated={false}
+              lang={lang}
             />
           </aside>
         )}
@@ -453,54 +485,63 @@ export const CartPageClient = () => {
                     ₺ / adet
                   </p>
                   <div className={styles.itemActions}>
-                    <div className={styles.qtyControl}>
-                      <button
-                        className={styles.qtyBtn}
-                        onClick={() =>
-                          updateItemMutation.mutate({
-                            cartItemId: item.id,
-                            quantity: item.quantity - 1,
-                          })
-                        }
-                        disabled={
-                          item.quantity <= 1 || updateItemMutation.isPending
-                        }
-                        aria-label="Azalt"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
+                    <div>
+                      <div className={styles.qtyControl}>
+                        <button
+                          className={styles.qtyBtn}
+                          onClick={() =>
+                            updateItemMutation.mutate({
+                              cartItemId: item.id,
+                              quantity: item.quantity - 1,
+                            })
+                          }
+                          disabled={
+                            item.quantity <= 1 || updateItemMutation.isPending
+                          }
+                          aria-label="Azalt"
                         >
-                          <path d="M5 12h14" />
-                        </svg>
-                      </button>
-                      <span className={styles.qtyValue}>{item.quantity}</span>
-                      <button
-                        className={styles.qtyBtn}
-                        onClick={() =>
-                          updateItemMutation.mutate({
-                            cartItemId: item.id,
-                            quantity: item.quantity + 1,
-                          })
-                        }
-                        disabled={updateItemMutation.isPending}
-                        aria-label="Artır"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path d="M5 12h14" />
+                          </svg>
+                        </button>
+                        <span className={styles.qtyValue}>{item.quantity}</span>
+                        <button
+                          className={styles.qtyBtn}
+                          onClick={() =>
+                            updateItemMutation.mutate({
+                              cartItemId: item.id,
+                              quantity: item.quantity + 1,
+                            })
+                          }
+                          disabled={
+                            item.quantity >= 5 || updateItemMutation.isPending
+                          }
+                          aria-label="Artır"
                         >
-                          <path d="M12 5v14M5 12h14" />
-                        </svg>
-                      </button>
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path d="M12 5v14M5 12h14" />
+                          </svg>
+                        </button>
+                      </div>
+                      {item.quantity >= 5 && (
+                        <p className={styles.qtyMaxWarning}>
+                          En fazla 5 adet eklenebilir
+                        </p>
+                      )}
                     </div>
 
                     <span className={styles.itemTotal}>
@@ -535,7 +576,7 @@ export const CartPageClient = () => {
         )}
 
         {!isEmpty && (
-          <Link href="/products" className={styles.continueShoppingLink}>
+          <Link href={`/${lang}/search`} className={styles.continueShoppingLink}>
             <svg
               width="16"
               height="16"
@@ -570,11 +611,13 @@ export const CartPageClient = () => {
             couponInput={couponInput}
             setCouponInput={setCouponInput}
             couponError={couponError}
+            couponSuccess={couponSuccess}
             onApplyCoupon={handleApplyCoupon}
             onRemoveCoupon={() => removeCouponMutation.mutate(serverCart.id)}
             isApplyingCoupon={applyCouponMutation.isPending}
             isRemovingCoupon={removeCouponMutation.isPending}
             isAuthenticated={true}
+            lang={lang}
           />
         </aside>
       )}
@@ -621,11 +664,13 @@ interface OrderSummaryProps {
   couponInput: string;
   setCouponInput: (v: string) => void;
   couponError: string;
+  couponSuccess: string;
   onApplyCoupon: () => void;
   onRemoveCoupon: () => void;
   isApplyingCoupon: boolean;
   isRemovingCoupon: boolean;
   isAuthenticated: boolean;
+  lang: string | string[];
 }
 
 function OrderSummary({
@@ -636,11 +681,13 @@ function OrderSummary({
   couponInput,
   setCouponInput,
   couponError,
+  couponSuccess,
   onApplyCoupon,
   onRemoveCoupon,
   isApplyingCoupon,
   isRemovingCoupon,
   isAuthenticated,
+  lang,
 }: OrderSummaryProps) {
   return (
     <div className={styles.summaryCard}>
@@ -721,7 +768,7 @@ function OrderSummary({
                   className={styles.couponInput}
                   placeholder="Kupon kodu"
                   value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  onChange={(e) => setCouponInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && onApplyCoupon()}
                   maxLength={32}
                 />
@@ -736,12 +783,15 @@ function OrderSummary({
               {couponError && (
                 <p className={styles.couponError}>{couponError}</p>
               )}
+              {couponSuccess && !couponError && (
+                <p className={styles.couponSuccess}>{couponSuccess}</p>
+              )}
             </>
           )}
         </div>
       )}
 
-      <Link href="/checkout" className={styles.checkoutBtn}>
+      <Link href={`/${lang}/checkout`} className={styles.checkoutBtn}>
         <svg
           width="18"
           height="18"

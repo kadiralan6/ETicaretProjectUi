@@ -50,41 +50,12 @@ export const authOptions: NextAuthOptions = {
             };
           }
 
-          return null;
+          throw new Error(body?.message || "Geçersiz e-posta veya şifre");
         } catch (error: any) {
-          console.error("[Auth] Login error:", error.message);
-
-          // Mock fallback — backend hazır olana kadar
-          // TODO: Backend hazır olduğunda bu bloğu kaldır
-          if (
-            credentials.email === "admin@test.com" &&
-            credentials.password === "123456"
-          ) {
-            return {
-              id: "mock-admin-1",
-              email: "admin@test.com",
-              name: "Admin User",
-              accessToken: "mock-jwt-token-admin",
-              refreshToken: "mock-refresh-token",
-              role: "Admin",
-            };
-          }
-
-          if (
-            credentials.email === "user@test.com" &&
-            credentials.password === "123456"
-          ) {
-            return {
-              id: "mock-user-1",
-              email: "user@test.com",
-              name: "Test User",
-              accessToken: "mock-jwt-token-user",
-              refreshToken: "mock-refresh-token",
-              role: "User",
-            };
-          }
-
-          throw new Error("Geçersiz e-posta veya şifre");
+          const backendMsg =
+            error?.response?.data?.message ||
+            error?.response?.data?.errors?.[0];
+          throw new Error(backendMsg || "Geçersiz e-posta veya şifre");
         }
       },
     }),
