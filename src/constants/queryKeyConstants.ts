@@ -24,4 +24,12 @@ export const QUERY_KEYS = {
 
   // User
   USER: "user",
+
+  // Campaigns
+  CAMPAIGNS: "campaigns",
+  CAMPAIGN_DETAIL: (id: string | number) => ["campaigns", String(id)] as const,
+
+  // Coupons
+  COUPONS: "coupons",
+  COUPON_DETAIL: (id: string | number) => ["coupons", String(id)] as const,
 } as const;

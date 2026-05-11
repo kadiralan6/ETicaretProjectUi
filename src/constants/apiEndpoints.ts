@@ -34,6 +34,20 @@ export const CREATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/Pro
 export const UPDATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/update`;
 export const DELETE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/delete`;
 
+// Basket - Campaigns
+export const CAMPAIGN_GET_ALL_FILTER: string = `${BASE_URL}/api/basket/campaigns/getAllFilter`;
+export const CAMPAIGN_GET_BY_ID: string = `${BASE_URL}/api/basket/campaigns/getById`;
+export const CAMPAIGN_CREATE: string = `${BASE_URL}/api/basket/campaigns/create`;
+export const CAMPAIGN_UPDATE: string = `${BASE_URL}/api/basket/campaigns/update`;
+export const CAMPAIGN_DELETE: string = `${BASE_URL}/api/basket/campaigns/delete`;
+
+// Basket - Coupons
+export const COUPON_GET_ALL_FILTER: string = `${BASE_URL}/api/basket/coupons/getAllFilter`;
+export const COUPON_GET_BY_ID: string = `${BASE_URL}/api/basket/coupons/getById`;
+export const COUPON_CREATE: string = `${BASE_URL}/api/basket/coupons/create`;
+export const COUPON_UPDATE: string = `${BASE_URL}/api/basket/coupons/update`;
+export const COUPON_DELETE: string = `${BASE_URL}/api/basket/coupons/delete`;
+
 // Cart (Basket Service)
 export const CART_GET_ITEM_COUNT: string = `${BASE_URL}/api/basket/CartItems/getItemCount`;
 export const CART_GET_OR_CREATE: string = `${BASE_URL}/api/basket/CartItems/getOrCreate`;
