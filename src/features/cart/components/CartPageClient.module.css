@@ -343,6 +343,16 @@ a.itemName:hover {
   letter-spacing: 0.03em;
 }
 
+.campaignChip {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--color-primary);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  letter-spacing: 0.03em;
+}
+
 .freeShipping {
   color: var(--color-success);
   font-weight: 600;

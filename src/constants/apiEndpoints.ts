@@ -61,9 +61,8 @@ export const CART_REMOVE_COUPON: string = `${BASE_URL}/api/basket/CartItems/remo
 export const CART_CLEAR: string = `${BASE_URL}/api/basket/CartItems/clear`;
 
 // Orders
-export const GET_ALL_ORDERS: string = `${BASE_URL}/api/orders/getAll`;
-export const GET_ORDER_BY_ID: string = `${BASE_URL}/api/orders/getById`;
-export const CREATE_ORDER: string = `${BASE_URL}/api/orders/create`;
+export const GET_MY_ORDERS: string = `${BASE_URL}/api/basket/orders/getMyOrders`;
+export const GET_ORDER_DETAIL: string = `${BASE_URL}/api/basket/orders/getDetail`;
 export const PLACE_ORDER: string = `${BASE_URL}/api/basket/orders/placeOrder`;
 
 // Auth / Identity

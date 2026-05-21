@@ -46,10 +46,10 @@ export const AdminCouponUpdatePage = ({ params }: Props) => {
   const [formData, setFormData] = useState({
     code: "",
     type: CampaignTypeCommonEnum.Percentage as CampaignTypeCommon,
-    discountValue: 0,
-    minimumOrderAmount: 0,
+    discountValue: "",
+    minimumOrderAmount: "",
     expirationDate: "",
-    usageLimit: 0,
+    usageLimit: "",
     isActive: true,
   });
 
@@ -61,10 +61,10 @@ export const AdminCouponUpdatePage = ({ params }: Props) => {
       setFormData({
         code: c.code ?? "",
         type: c.type ?? CampaignTypeCommonEnum.Percentage,
-        discountValue: c.discountValue ?? 0,
-        minimumOrderAmount: c.minimumOrderAmount ?? 0,
+        discountValue: String(c.discountValue ?? ""),
+        minimumOrderAmount: String(c.minimumOrderAmount ?? ""),
         expirationDate: toLocalDatetime(c.expirationDate),
-        usageLimit: c.usageLimit ?? 0,
+        usageLimit: String(c.usageLimit ?? ""),
         isActive: c.isActive ?? true,
       });
       return c;
@@ -217,7 +217,7 @@ export const AdminCouponUpdatePage = ({ params }: Props) => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  discountValue: Number(e.target.value),
+                  discountValue: e.target.value,
                 }))
               }
               required
@@ -235,7 +235,7 @@ export const AdminCouponUpdatePage = ({ params }: Props) => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  minimumOrderAmount: Number(e.target.value),
+                  minimumOrderAmount: e.target.value,
                 }))
               }
             />
@@ -252,7 +252,7 @@ export const AdminCouponUpdatePage = ({ params }: Props) => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  usageLimit: Number(e.target.value),
+                  usageLimit: e.target.value,
                 }))
               }
             />

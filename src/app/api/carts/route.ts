@@ -1,42 +1,46 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import httpClient from "@/util/httpClient";
-import { authOptions } from "@/providers/AuthProvider";
 import { CART_GET_BY_USER_ID } from "@/constants/apiEndpoints";
 
-// GET /api/carts → GET /api/basket/CartItems/getByUserId/{userId}
+// GET /api/carts → GET /api/basket/CartItems/getByUserId
+// Response: ApiResponse<GetBasketDto>
 export async function GET() {
   try {
+    const response = await httpClient.get(CART_GET_BY_USER_ID);
+    const basket = response.data?.data;
 
-    const response = await httpClient.get(`${CART_GET_BY_USER_ID}`);
-    // Response: { isSuccess, data: CartItem[] }
-    const rawItems: any[] = response.data?.data ?? [];
+    if (!basket) {
+      return NextResponse.json({
+        items: [],
+        totalQuantity: 0,
+        uniqueItemCount: 0,
+        subTotal: 0,
+        shippingCost: 0,
+        appliedCoupon: null,
+        appliedCampaign: null,
+        totalDiscount: 0,
+        total: 0,
+      });
+    }
 
-    const items = rawItems.map((item: any) => ({
-      id: item.cartItemId,
-      cartId: 0,
-      productId: item.productId,
-      productName: item.productName,
-      productSlug: item.productSlug,
+    const items = (basket.items ?? []).map((item: any) => ({
+      ...item,
       imageUrl:
-        item.images?.find((img: any) => img.isCover)?.url ??
+        item.images?.find((img: any) => img.isMain)?.url ??
         item.images?.[0]?.url ??
         "",
-      unitPrice: item.unitPrice,
-      quantity: item.quantity,
-      lineTotal: item.lineTotal,
     }));
 
-    const subtotal = items.reduce((s, i) => s + i.lineTotal, 0);
-
     return NextResponse.json({
-      id: rawItems[0]?.cartId ?? 0,
-      couponId: rawItems[0]?.couponId ?? null,
-      couponCode: null,
-      subtotal,
-      discountAmount: 0,
-      total: subtotal,
       items,
+      totalQuantity: basket.totalQuantity ?? 0,
+      uniqueItemCount: basket.uniqueItemCount ?? 0,
+      subTotal: basket.subTotal ?? 0,
+      shippingCost: basket.shippingCost ?? 0,
+      appliedCoupon: basket.appliedCoupon ?? null,
+      appliedCampaign: basket.appliedCampaign ?? null,
+      totalDiscount: basket.totalDiscount ?? 0,
+      total: basket.total ?? 0,
     });
   } catch (error: any) {
     const backendData = error.response?.data;

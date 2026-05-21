@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import httpClient from "@/util/httpClient";
-import { GET_ALL_ORDERS, PLACE_ORDER } from "@/constants/apiEndpoints";
+import { GET_MY_ORDERS, PLACE_ORDER } from "@/constants/apiEndpoints";
+
+type AxiosLike = { response?: { data?: Record<string, unknown>; status?: number } };
 
 export async function GET() {
   try {
-    const response = await httpClient.get(GET_ALL_ORDERS);
-    return NextResponse.json(response.data?.data ?? response.data);
-  } catch (error: any) {
-    const errorData = error.response?.data || {};
-    return NextResponse.json(errorData, { status: errorData.StatusCode || 500 });
+    const response = await httpClient.get(GET_MY_ORDERS);
+    const result = response.data;
+    return NextResponse.json(result?.data ?? result);
+  } catch (error) {
+    const err = error as AxiosLike;
+    const errorData = err.response?.data || {};
+    return NextResponse.json(errorData, {
+      status: (errorData.StatusCode as number) || 500,
+    });
   }
 }
 
@@ -26,11 +32,12 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(result?.data ?? result);
-  } catch (error: any) {
-    const errorData = error.response?.data;
-    const status = error.response?.status || 500;
+  } catch (error) {
+    const err = error as AxiosLike;
+    const errorData = err.response?.data;
+    const status = (err.response?.status as number) || 500;
     return NextResponse.json(
-      { message: errorData?.message || "Sipariş oluşturulamadı." },
+      { message: (errorData?.message as string) || "Sipariş oluşturulamadı." },
       { status },
     );
   }

@@ -1,47 +1,67 @@
-export interface IOrderItem {
-  id: number;
-  productId: number;
+// ─── Numeric status enum (getMyOrders / getDetail) ─────────────
+export type IOrderStatusCode = 0 | 1 | 2 | 3 | 4 | 5;
+// 0=Pending, 1=Confirmed, 2=Shipped, 3=Delivered, 4=Cancelled, 5=PaymentFailed
+
+// ─── My Orders list ─────────────────────────────────────────────
+export interface IMyOrder {
+  orderId: number;
+  orderNumber: string;
   productName: string;
-  productSlug: string;
-  imageUrl: string;
-  unitPrice: number;
   quantity: number;
-  lineTotal: number;
+  totalPrice: number;
+  status: IOrderStatusCode;
+  createdAt: string;
 }
 
-export type IOrderStatus =
-  | "Pending"
-  | "Confirmed"
-  | "Processing"
-  | "Shipped"
-  | "Delivered"
-  | "Cancelled";
+// ─── Order Detail ────────────────────────────────────────────────
+export interface IOrderDetailImage {
+  id: number;
+  url: string;
+  isCover: boolean;
+  altText: string;
+}
 
-export interface IOrderShippingAddress {
+export interface IOrderDetailItem {
+  productId: number;
+  productName: string;
+  brandName: string;
+  categoryName: string;
+  images: IOrderDetailImage[];
+  quantity: number;
+  price: number;
+  totalNetPrice: number;
+}
+
+export interface IOrderDetailAddress {
+  id: number;
   title: string;
   fullName: string;
   phoneNumber: string;
   city: string;
-  district: string;
   fullAddress: string;
   postalCode: string;
 }
 
-export interface IOrder {
-  id: number;
+export interface IOrderDetailBuyer {
   userId: number;
-  items: IOrderItem[];
-  subtotal: number;
-  discountAmount: number;
-  total: number;
-  couponCode: string | null;
-  status: IOrderStatus;
-  shippingAddress: IOrderShippingAddress;
-  paymentMethod: "CreditCard";
-  createdAt: string;
-  updatedAt: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
 }
 
+export interface IOrderDetail {
+  orderId: number;
+  orderNumber: string;
+  status: IOrderStatusCode;
+  totalPrice: number;
+  createdAt: string;
+  items: IOrderDetailItem[];
+  address: IOrderDetailAddress | null;
+  buyer: IOrderDetailBuyer | null;
+}
+
+// ─── Checkout / Place Order ──────────────────────────────────────
 export interface ICreateOrderCardInfo {
   cardNumber: string;
   expiryMonth: string;
@@ -58,7 +78,7 @@ export interface ICreateOrderItem {
 export type IPaymentMethod = 1 | 2 | 3; // 1=CreditCard, 2=DebitCard, 3=BankTransfer
 
 export interface ICreateOrderRequest {
-  cartId: number;
+  cartId?: number;
   addressId: number;
   paymentMethod: IPaymentMethod;
   cardInfo: ICreateOrderCardInfo | null;

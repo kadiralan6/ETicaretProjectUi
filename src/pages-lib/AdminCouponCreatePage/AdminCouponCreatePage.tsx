@@ -32,10 +32,10 @@ export const AdminCouponCreatePage = () => {
   const [formData, setFormData] = useState({
     code: "",
     type: CampaignTypeCommonEnum.Percentage as CampaignTypeCommon,
-    discountValue: 0,
-    minimumOrderAmount: 0,
+    discountValue: "",
+    minimumOrderAmount: "",
     expirationDate: "",
-    usageLimit: 0,
+    usageLimit: "",
   });
 
   const createMutation = useMutation({
@@ -145,7 +145,7 @@ export const AdminCouponCreatePage = () => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  discountValue: Number(e.target.value),
+                  discountValue: e.target.value,
                 }))
               }
               required
@@ -163,7 +163,7 @@ export const AdminCouponCreatePage = () => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  minimumOrderAmount: Number(e.target.value),
+                  minimumOrderAmount: e.target.value,
                 }))
               }
             />
@@ -180,7 +180,7 @@ export const AdminCouponCreatePage = () => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  usageLimit: Number(e.target.value),
+                  usageLimit: e.target.value,
                 }))
               }
             />

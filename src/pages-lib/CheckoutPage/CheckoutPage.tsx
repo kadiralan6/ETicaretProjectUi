@@ -165,7 +165,6 @@ export const CheckoutPage = () => {
       expiryYearShort.length === 2 ? "20" + expiryYearShort : expiryYearShort;
 
     const payload: ICreateOrderRequest = {
-      cartId: cart.id,
       addressId: selectedAddressId,
       paymentMethod: 1,
       cardInfo: {
@@ -605,12 +604,12 @@ export const CheckoutPage = () => {
           ) : (
             <ul className={styles.itemList}>
               {cart?.items.map((item) => (
-                <li key={item.id} className={styles.itemRow}>
+                <li key={item.cartItemId} className={styles.itemRow}>
                   <div className={styles.itemImageWrap}>
                     {item.imageUrl ? (
                       <Image
                         src={item.imageUrl}
-                        alt={item.productName}
+                        alt={item.productName ?? ""}
                         fill
                         sizes="56px"
                         className={styles.itemImage}
@@ -621,7 +620,7 @@ export const CheckoutPage = () => {
                     <span className={styles.itemQtyBadge}>{item.quantity}</span>
                   </div>
                   <div className={styles.itemInfo}>
-                    <p className={styles.itemName}>{item.productName}</p>
+                    <p className={styles.itemName}>{item.productName ?? "-"}</p>
                     <p className={styles.itemPrice}>
                       {item.lineTotal.toLocaleString("tr-TR", {
                         minimumFractionDigits: 2,
@@ -640,7 +639,7 @@ export const CheckoutPage = () => {
             <div className={styles.summaryRow}>
               <span>Ara Toplam</span>
               <span>
-                {(cart?.subtotal ?? 0).toLocaleString("tr-TR", {
+                {(cart?.subTotal ?? 0).toLocaleString("tr-TR", {
                   minimumFractionDigits: 2,
                 })}{" "}
                 ₺

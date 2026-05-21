@@ -1,26 +1,60 @@
-// Backend: /api/basket/carts/* endpoint response types
+export interface IProductImage {
+  id: number;
+  url: string;
+  isMain: boolean;
+}
+
+export interface IAppliedCoupon {
+  id: number;
+  code: string;
+  type: number;
+  discountValue: number;
+  minimumOrderAmount: number | null;
+  expirationDate: string;
+  discountAmount: number;
+}
+
+export interface IAppliedCampaign {
+  id: number;
+  name: string | null;
+  type: number;
+  discountValue: number;
+  minimumOrderAmount: number | null;
+  startDate: string;
+  endDate: string;
+  discountAmount: number;
+}
 
 export interface ICartItem {
-  id: number;
-  cartId: number;
+  cartItemId: number;
+  userId: number;
   productId: number;
-  productName: string;
-  productSlug: string;
-  imageUrl: string;
-  unitPrice: number;
   quantity: number;
+  couponId: number | null;
+  orderNumber: string | null;
+  productName: string | null;
+  productCode: string | null;
+  productSlug: string | null;
+  unitPrice: number;
   lineTotal: number;
+  stockQuantity: number;
+  isActive: boolean;
+  categoryName: string | null;
+  brandName: string | null;
+  images: IProductImage[];
+  imageUrl: string;
 }
 
 export interface ICart {
-  id: number;
-  userId: number;
-  couponId: number | null;
-  couponCode: string | null;
-  subtotal: number;
-  discountAmount: number;
-  total: number;
   items: ICartItem[];
+  totalQuantity: number;
+  uniqueItemCount: number;
+  subTotal: number;
+  shippingCost: number;
+  appliedCoupon: IAppliedCoupon | null;
+  appliedCampaign: IAppliedCampaign | null;
+  totalDiscount: number;
+  total: number;
 }
 
 export interface ICartItemCount {
@@ -28,8 +62,6 @@ export interface ICartItemCount {
   totalQuantity: number;
   uniqueItemCount: number;
 }
-
-// Request types
 
 export interface IAddCartItemRequest {
   productId: number;

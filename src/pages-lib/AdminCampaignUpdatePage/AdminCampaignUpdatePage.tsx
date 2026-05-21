@@ -49,11 +49,11 @@ export const AdminCampaignUpdatePage = ({ params }: Props) => {
   const [formData, setFormData] = useState({
     name: "",
     type: CampaignTypeCommonEnum.Percentage as CampaignTypeCommon,
-    discountValue: 0,
-    minimumOrderAmount: 0,
+    discountValue: "",
+    minimumOrderAmount: "",
     startDate: "",
     endDate: "",
-    usageLimit: 0,
+    usageLimit: "",
     isActive: true,
   });
 
@@ -65,11 +65,11 @@ export const AdminCampaignUpdatePage = ({ params }: Props) => {
       setFormData({
         name: c.name ?? "",
         type: c.type ?? CampaignTypeCommonEnum.Percentage,
-        discountValue: c.discountValue ?? 0,
-        minimumOrderAmount: c.minimumOrderAmount ?? 0,
+        discountValue: String(c.discountValue ?? ""),
+        minimumOrderAmount: String(c.minimumOrderAmount ?? ""),
         startDate: toLocalDatetime(c.startDate),
         endDate: toLocalDatetime(c.endDate),
-        usageLimit: c.usageLimit ?? 0,
+        usageLimit: String(c.usageLimit ?? ""),
         isActive: c.isActive ?? true,
       });
       return c;
@@ -223,7 +223,7 @@ export const AdminCampaignUpdatePage = ({ params }: Props) => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  discountValue: Number(e.target.value),
+                  discountValue: e.target.value,
                 }))
               }
               required
@@ -241,7 +241,7 @@ export const AdminCampaignUpdatePage = ({ params }: Props) => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  minimumOrderAmount: Number(e.target.value),
+                  minimumOrderAmount: e.target.value,
                 }))
               }
             />
@@ -258,7 +258,7 @@ export const AdminCampaignUpdatePage = ({ params }: Props) => {
               onChange={(e) =>
                 setFormData((p) => ({
                   ...p,
-                  usageLimit: Number(e.target.value),
+                  usageLimit: e.target.value,
                 }))
               }
             />

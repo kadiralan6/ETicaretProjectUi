@@ -39,11 +39,11 @@ export const AdminCampaignCreatePage = () => {
   const [formData, setFormData] = useState({
     name: "",
     type: CampaignTypeCommonEnum.Percentage as CampaignTypeCommon,
-    discountValue: 0,
-    minimumOrderAmount: 0,
+    discountValue: "",
+    minimumOrderAmount: "",
     startDate: "",
     endDate: "",
-    usageLimit: 0,
+    usageLimit: "",
   });
 
   const createMutation = useMutation({
@@ -149,10 +149,7 @@ export const AdminCampaignCreatePage = () => {
               min={0}
               value={formData.discountValue}
               onChange={(e) =>
-                setFormData((p) => ({
-                  ...p,
-                  discountValue: Number(e.target.value),
-                }))
+                setFormData((p) => ({ ...p, discountValue: e.target.value }))
               }
               required
             />
@@ -167,10 +164,7 @@ export const AdminCampaignCreatePage = () => {
               min={0}
               value={formData.minimumOrderAmount}
               onChange={(e) =>
-                setFormData((p) => ({
-                  ...p,
-                  minimumOrderAmount: Number(e.target.value),
-                }))
+                setFormData((p) => ({ ...p, minimumOrderAmount: e.target.value }))
               }
             />
           </VStack>
@@ -184,10 +178,7 @@ export const AdminCampaignCreatePage = () => {
               min={0}
               value={formData.usageLimit}
               onChange={(e) =>
-                setFormData((p) => ({
-                  ...p,
-                  usageLimit: Number(e.target.value),
-                }))
+                setFormData((p) => ({ ...p, usageLimit: e.target.value }))
               }
             />
           </VStack>
