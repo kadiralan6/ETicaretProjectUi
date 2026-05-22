@@ -27,6 +27,8 @@ export const ROUTES = {
   ADMIN_BRAND_EDIT: (id: string) => `/admin/brands/${id}`,
   ADMIN_ORDERS: "/admin/orders",
   ADMIN_CUSTOMERS: "/admin/customers",
+  ADMIN_CUSTOMER_CREATE: "/admin/customers/create",
+  ADMIN_CUSTOMER_DETAIL: (id: string) => `/admin/customers/${id}`,
   ADMIN_CAMPAIGNS: "/admin/campaigns",
   ADMIN_CAMPAIGN_CREATE: "/admin/campaigns/create",
   ADMIN_CAMPAIGN_EDIT: (id: string | number) => `/admin/campaigns/${id}`,

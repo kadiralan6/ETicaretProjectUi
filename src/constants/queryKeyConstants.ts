@@ -32,4 +32,8 @@ export const QUERY_KEYS = {
   // Coupons
   COUPONS: "coupons",
   COUPON_DETAIL: (id: string | number) => ["coupons", String(id)] as const,
+
+  // Customers
+  CUSTOMERS: "customers",
+  CUSTOMER_DETAIL: (id: string) => ["customers", id] as const,
 } as const;

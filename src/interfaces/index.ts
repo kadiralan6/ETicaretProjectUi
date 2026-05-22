@@ -70,3 +70,10 @@ export type {
   CouponOrderBy,
 } from "./ICoupon";
 export { CouponOrderByEnum } from "./ICoupon";
+export type {
+  ICustomer,
+  ICreateCustomerRequest,
+  IUpdateCustomerRequest,
+  CustomerOrderBy,
+} from "./ICustomer";
+export { CustomerOrderByEnum } from "./ICustomer";
