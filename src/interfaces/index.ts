@@ -48,3 +48,25 @@ export type {
   ICreateAddressRequest,
   IUpdateAddressRequest,
 } from "./IAddress";
+export type {
+  ICampaign,
+  ICreateCampaignRequest,
+  IUpdateCampaignRequest,
+  ICampaignFilter,
+  CampaignTypeCommon,
+  CampaignOrderBy,
+  OrderType,
+} from "./ICampaign";
+export {
+  CampaignTypeCommonEnum,
+  CampaignOrderByEnum,
+  OrderTypeEnum,
+} from "./ICampaign";
+export type {
+  ICoupon,
+  ICreateCouponRequest,
+  IUpdateCouponRequest,
+  ICouponFilter,
+  CouponOrderBy,
+} from "./ICoupon";
+export { CouponOrderByEnum } from "./ICoupon";

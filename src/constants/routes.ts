@@ -28,4 +28,9 @@ export const ROUTES = {
   ADMIN_ORDERS: "/admin/orders",
   ADMIN_CUSTOMERS: "/admin/customers",
   ADMIN_CAMPAIGNS: "/admin/campaigns",
+  ADMIN_CAMPAIGN_CREATE: "/admin/campaigns/create",
+  ADMIN_CAMPAIGN_EDIT: (id: string | number) => `/admin/campaigns/${id}`,
+  ADMIN_COUPONS: "/admin/coupons",
+  ADMIN_COUPON_CREATE: "/admin/coupons/create",
+  ADMIN_COUPON_EDIT: (id: string | number) => `/admin/coupons/${id}`,
 } as const;

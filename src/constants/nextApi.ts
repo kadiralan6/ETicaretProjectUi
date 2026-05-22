@@ -48,4 +48,14 @@ export const NEXT_API_URLS = {
   // Addresses
   ADDRESSES: "/addresses",
   ADDRESS_BY_ID: (id: number | string) => `/addresses/${id}`,
+
+  // Campaigns
+  CAMPAIGNS_GET_ALL_FILTER: "/campaigns/getAllFilter",
+  CAMPAIGN_BY_ID: (id: string | number) => `/campaigns/${id}`,
+  CAMPAIGNS_CREATE: "/campaigns/create",
+
+  // Coupons
+  COUPONS_GET_ALL_FILTER: "/coupons/getAllFilter",
+  COUPON_BY_ID: (id: string | number) => `/coupons/${id}`,
+  COUPONS_CREATE: "/coupons/create",
 } as const;

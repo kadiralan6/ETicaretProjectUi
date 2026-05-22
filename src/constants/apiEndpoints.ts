@@ -34,6 +34,20 @@ export const CREATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/Pro
 export const UPDATE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/update`;
 export const DELETE_PRODUCT_IMAGE: string = `${CATALOG_BASE_URL}/api/catalog/ProductImages/delete`;
 
+// Basket - Campaigns
+export const CAMPAIGN_GET_ALL_FILTER: string = `${BASE_URL}/api/basket/campaigns/getAllFilter`;
+export const CAMPAIGN_GET_BY_ID: string = `${BASE_URL}/api/basket/campaigns/getById`;
+export const CAMPAIGN_CREATE: string = `${BASE_URL}/api/basket/campaigns/create`;
+export const CAMPAIGN_UPDATE: string = `${BASE_URL}/api/basket/campaigns/update`;
+export const CAMPAIGN_DELETE: string = `${BASE_URL}/api/basket/campaigns/delete`;
+
+// Basket - Coupons
+export const COUPON_GET_ALL_FILTER: string = `${BASE_URL}/api/basket/coupons/getAllFilter`;
+export const COUPON_GET_BY_ID: string = `${BASE_URL}/api/basket/coupons/getById`;
+export const COUPON_CREATE: string = `${BASE_URL}/api/basket/coupons/create`;
+export const COUPON_UPDATE: string = `${BASE_URL}/api/basket/coupons/update`;
+export const COUPON_DELETE: string = `${BASE_URL}/api/basket/coupons/delete`;
+
 // Cart (Basket Service)
 export const CART_GET_ITEM_COUNT: string = `${BASE_URL}/api/basket/CartItems/getItemCount`;
 export const CART_GET_OR_CREATE: string = `${BASE_URL}/api/basket/CartItems/getOrCreate`;
@@ -47,9 +61,8 @@ export const CART_REMOVE_COUPON: string = `${BASE_URL}/api/basket/CartItems/remo
 export const CART_CLEAR: string = `${BASE_URL}/api/basket/CartItems/clear`;
 
 // Orders
-export const GET_ALL_ORDERS: string = `${BASE_URL}/api/orders/getAll`;
-export const GET_ORDER_BY_ID: string = `${BASE_URL}/api/orders/getById`;
-export const CREATE_ORDER: string = `${BASE_URL}/api/orders/create`;
+export const GET_MY_ORDERS: string = `${BASE_URL}/api/basket/orders/getMyOrders`;
+export const GET_ORDER_DETAIL: string = `${BASE_URL}/api/basket/orders/getDetail`;
 export const PLACE_ORDER: string = `${BASE_URL}/api/basket/orders/placeOrder`;
 
 // Auth / Identity

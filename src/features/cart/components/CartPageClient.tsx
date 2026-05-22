@@ -9,7 +9,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCartStore } from "@/features/cart/store";
 import nextApiClient from "@/util/nextApiClient";
 import { NEXT_API_URLS } from "@/constants/nextApi";
-import type { ICart, ICartItem } from "@/interfaces/ICart";
+import type {
+  ICart,
+  ICartItem,
+  IAppliedCoupon,
+  IAppliedCampaign,
+} from "@/interfaces/ICart";
 import styles from "./CartPageClient.module.css";
 
 const CART_QUERY_KEY = ["cart"] as const;
@@ -106,10 +111,14 @@ export const CartPageClient = () => {
   });
 
   const removeCouponMutation = useMutation({
-    mutationFn: (cartId: number) =>
-      nextApiClient
-        .delete(NEXT_API_URLS.CART_COUPON_REMOVE(cartId))
-        .then((r) => r.data),
+    mutationFn: (cartItemIds: number[]) =>
+      Promise.all(
+        cartItemIds.map((cartItemId) =>
+          nextApiClient
+            .delete(NEXT_API_URLS.CART_COUPON_REMOVE(cartItemId))
+            .then((r) => r.data),
+        ),
+      ),
     onSuccess: () => {
       setCouponError("");
       setCouponSuccess("Kupon kaldırıldı.");
@@ -359,11 +368,12 @@ export const CartPageClient = () => {
         {!isEmpty && (
           <aside className={styles.summaryCol}>
             <OrderSummary
-              subtotal={guestTotal}
-              discountAmount={0}
+              subTotal={guestTotal}
+              shippingCost={0}
+              totalDiscount={0}
               totalPrice={guestTotal}
               appliedCoupon={null}
-              cartId={null}
+              appliedCampaign={null}
               couponInput={couponInput}
               setCouponInput={setCouponInput}
               couponError={couponError}
@@ -402,10 +412,7 @@ export const CartPageClient = () => {
   }
 
   const isEmpty = serverCart.items.length === 0;
-  const totalItemCount = serverCart.items.reduce(
-    (sum, item) => sum + item.quantity,
-    0,
-  );
+  const totalItemCount = serverCart.totalQuantity;
 
   return (
     <div className={styles.layout}>
@@ -448,12 +455,12 @@ export const CartPageClient = () => {
         ) : (
           <ul className={styles.itemList}>
             {serverCart.items.map((item: ICartItem) => (
-              <li key={item.id} className={styles.itemCard}>
+              <li key={item.cartItemId} className={styles.itemCard}>
                 <div className={styles.itemImageWrap}>
                   {item.imageUrl ? (
                     <Image
                       src={item.imageUrl}
-                      alt={item.productName}
+                      alt={item.productName ?? ""}
                       fill
                       sizes="96px"
                       className={styles.itemImage}
@@ -477,7 +484,7 @@ export const CartPageClient = () => {
                 </div>
 
                 <div className={styles.itemInfo}>
-                  <p className={styles.itemName}>{item.productName}</p>
+                  <p className={styles.itemName}>{item.productName ?? "-"}</p>
                   <p className={styles.itemUnitPrice}>
                     {item.unitPrice.toLocaleString("tr-TR", {
                       minimumFractionDigits: 2,
@@ -491,7 +498,7 @@ export const CartPageClient = () => {
                           className={styles.qtyBtn}
                           onClick={() =>
                             updateItemMutation.mutate({
-                              cartItemId: item.id,
+                              cartItemId: item.cartItemId,
                               quantity: item.quantity - 1,
                             })
                           }
@@ -516,12 +523,13 @@ export const CartPageClient = () => {
                           className={styles.qtyBtn}
                           onClick={() =>
                             updateItemMutation.mutate({
-                              cartItemId: item.id,
+                              cartItemId: item.cartItemId,
                               quantity: item.quantity + 1,
                             })
                           }
                           disabled={
-                            item.quantity >= 5 || updateItemMutation.isPending
+                            item.quantity >= item.stockQuantity ||
+                            updateItemMutation.isPending
                           }
                           aria-label="Artır"
                         >
@@ -537,9 +545,9 @@ export const CartPageClient = () => {
                           </svg>
                         </button>
                       </div>
-                      {item.quantity >= 5 && (
+                      {item.quantity >= item.stockQuantity && (
                         <p className={styles.qtyMaxWarning}>
-                          En fazla 5 adet eklenebilir
+                          Stok sınırına ulaşıldı
                         </p>
                       )}
                     </div>
@@ -553,7 +561,9 @@ export const CartPageClient = () => {
 
                     <button
                       className={styles.removeBtn}
-                      onClick={() => removeItemMutation.mutate(item.id)}
+                      onClick={() =>
+                        removeItemMutation.mutate(item.cartItemId)
+                      }
                       disabled={removeItemMutation.isPending}
                       aria-label="Ürünü kaldır"
                     >
@@ -596,24 +606,23 @@ export const CartPageClient = () => {
       {!isEmpty && (
         <aside className={styles.summaryCol}>
           <OrderSummary
-            subtotal={serverCart.subtotal}
-            discountAmount={serverCart.discountAmount}
-            totalPrice={serverCart.total ?? serverCart.subtotal - serverCart.discountAmount}
-            appliedCoupon={
-              serverCart.couponCode
-                ? {
-                    couponCode: serverCart.couponCode,
-                    discountAmount: serverCart.discountAmount,
-                  }
-                : null
-            }
-            cartId={serverCart.id}
+            subTotal={serverCart.subTotal}
+            shippingCost={serverCart.shippingCost}
+            totalDiscount={serverCart.totalDiscount}
+            totalPrice={serverCart.total}
+            appliedCoupon={serverCart.appliedCoupon}
+            appliedCampaign={serverCart.appliedCampaign}
             couponInput={couponInput}
             setCouponInput={setCouponInput}
             couponError={couponError}
             couponSuccess={couponSuccess}
             onApplyCoupon={handleApplyCoupon}
-            onRemoveCoupon={() => removeCouponMutation.mutate(serverCart.id)}
+            onRemoveCoupon={() => {
+              const ids = serverCart.items
+                .filter((i) => i.couponId !== null)
+                .map((i) => i.cartItemId);
+              removeCouponMutation.mutate(ids);
+            }}
             isApplyingCoupon={applyCouponMutation.isPending}
             isRemovingCoupon={removeCouponMutation.isPending}
             isAuthenticated={true}
@@ -656,11 +665,12 @@ function EmptyCart() {
 }
 
 interface OrderSummaryProps {
-  subtotal: number;
-  discountAmount: number;
+  subTotal: number;
+  shippingCost: number;
+  totalDiscount: number;
   totalPrice: number;
-  appliedCoupon: { couponCode: string; discountAmount: number } | null;
-  cartId: number | string | null;
+  appliedCoupon: IAppliedCoupon | null;
+  appliedCampaign: IAppliedCampaign | null;
   couponInput: string;
   setCouponInput: (v: string) => void;
   couponError: string;
@@ -673,11 +683,16 @@ interface OrderSummaryProps {
   lang: string | string[];
 }
 
+const fmt = (n: number) =>
+  n.toLocaleString("tr-TR", { minimumFractionDigits: 2 });
+
 function OrderSummary({
-  subtotal,
-  discountAmount,
+  subTotal,
+  shippingCost,
+  totalDiscount,
   totalPrice,
   appliedCoupon,
+  appliedCampaign,
   couponInput,
   setCouponInput,
   couponError,
@@ -696,30 +711,45 @@ function OrderSummary({
       <div className={styles.summaryRows}>
         <div className={styles.summaryRow}>
           <span>Ara Toplam</span>
-          <span>
-            {subtotal.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺
-          </span>
+          <span>{fmt(subTotal)} ₺</span>
         </div>
 
-        {discountAmount > 0 && (
+        {appliedCampaign && (
           <div className={`${styles.summaryRow} ${styles.discountRow}`}>
             <span>
-              İndirim
-              {appliedCoupon && (
-                <span className={styles.couponChip}>
-                  {appliedCoupon.couponCode}
-                </span>
-              )}
+              Kampanya
+              <span className={styles.campaignChip}>
+                {appliedCampaign.name ?? ""}
+              </span>
             </span>
+            <span>-{fmt(appliedCampaign.discountAmount)} ₺</span>
+          </div>
+        )}
+
+        {appliedCoupon && (
+          <div className={`${styles.summaryRow} ${styles.discountRow}`}>
             <span>
-              -{discountAmount.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺
+              Kupon
+              <span className={styles.couponChip}>{appliedCoupon.code}</span>
             </span>
+            <span>-{fmt(appliedCoupon.discountAmount)} ₺</span>
+          </div>
+        )}
+
+        {totalDiscount > 0 && !appliedCoupon && !appliedCampaign && (
+          <div className={`${styles.summaryRow} ${styles.discountRow}`}>
+            <span>İndirim</span>
+            <span>-{fmt(totalDiscount)} ₺</span>
           </div>
         )}
 
         <div className={styles.summaryRow}>
           <span>Kargo</span>
-          <span className={styles.freeShipping}>Ücretsiz</span>
+          {shippingCost === 0 ? (
+            <span className={styles.freeShipping}>Ücretsiz</span>
+          ) : (
+            <span>{fmt(shippingCost)} ₺</span>
+          )}
         </div>
       </div>
 
@@ -727,9 +757,7 @@ function OrderSummary({
 
       <div className={styles.summaryTotal}>
         <span>Toplam</span>
-        <span>
-          {totalPrice.toLocaleString("tr-TR", { minimumFractionDigits: 2 })} ₺
-        </span>
+        <span>{fmt(totalPrice)} ₺</span>
       </div>
 
       {/* Coupon section */}
@@ -749,7 +777,7 @@ function OrderSummary({
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 <span>
-                  <strong>{appliedCoupon.couponCode}</strong> uygulandı
+                  <strong>{appliedCoupon.code}</strong> uygulandı
                 </span>
               </div>
               <button

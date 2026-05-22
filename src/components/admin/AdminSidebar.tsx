@@ -36,7 +36,24 @@ const MENU_ITEMS = [
   },
   { name: "Müşteriler", icon: FiUsers, path: "/admin/customers" },
   { name: "Siparişler", icon: FiShoppingCart, path: "/admin/orders" },
-  { name: "Kampanya Tanımlama", icon: FiTag, path: "/admin/campaigns" },
+  {
+    name: "Kampanyalar",
+    icon: FiTag,
+    path: "/admin/campaigns",
+    subItems: [
+      { name: "Kampanya Listesi", icon: FiList, path: "/admin/campaigns" },
+      { name: "Kampanya Ekle", icon: FiPlus, path: "/admin/campaigns/create" },
+    ],
+  },
+  {
+    name: "Kuponlar",
+    icon: FiTag,
+    path: "/admin/coupons",
+    subItems: [
+      { name: "Kupon Listesi", icon: FiList, path: "/admin/coupons" },
+      { name: "Kupon Ekle", icon: FiPlus, path: "/admin/coupons/create" },
+    ],
+  },
 ]
 
 export default function AdminSidebar() {
